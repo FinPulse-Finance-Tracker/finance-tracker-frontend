@@ -1,117 +1,143 @@
-import { UserButton, useUser } from '@clerk/clerk-react';
+import { useUser } from '@clerk/clerk-react';
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { expenseService } from '../services/financeService';
+import { Card, CardBody } from './UI/Card';
+import { motion } from 'framer-motion';
+import { TrendingUp, Coins, Tags, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { cn } from '../utils/cn';
 
 export default function Dashboard() {
     const { user } = useUser();
     const firstName = user?.firstName || user?.emailAddresses[0]?.emailAddress?.split('@')[0];
     const [isVisible, setIsVisible] = useState(false);
 
+    const { data: stats, isLoading } = useQuery({
+        queryKey: ['stats'],
+        queryFn: () => expenseService.getStats(),
+    });
+
     useEffect(() => {
         setIsVisible(true);
     }, []);
 
     return (
-        <div className="min-h-screen bg-black">
-            {/* Navbar with slide down animation */}
-            <nav className={`bg-black border-b border-purple-900/50 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
-                }`}>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
-                            FinPulse
-                        </h1>
+        <div className="space-y-8">
+            {/* Welcome Card */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-purple-900/20 border border-purple-500/30 rounded-2xl p-8 transition-all hover:bg-purple-900/30"
+            >
+                <h2 className="text-4xl font-bold text-white mb-2">
+                    Welcome back, {firstName}!
+                </h2>
+                <p className="text-purple-300 text-lg">
+                    Here's what's happening with your finances today.
+                </p>
+            </motion.div>
 
-                        <div className="flex items-center gap-4">
-                            <span className="text-gray-400">Hey, {firstName}!</span>
-                            <UserButton
-                                afterSignOutUrl="/"
-                                appearance={{
-                                    elements: {
-                                        avatarBox: "w-10 h-10",
-                                    },
-                                }}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Welcome Card with fade and slide up */}
-                <div
-                    className={`bg-purple-900/20 border border-purple-500/30 rounded-2xl p-8 mb-8 transition-all duration-700 hover:border-purple-500/50 hover:bg-purple-900/30 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                        }`}
-                    style={{ transitionDelay: '100ms' }}
-                >
-                    <h2 className="text-4xl font-bold text-white mb-2">
-                        Welcome to FinPulse!
-                    </h2>
-                    <p className="text-purple-300 text-lg">
-                        Your financial journey starts here.
-                    </p>
-                </div>
-
-                {/* Stats Grid with staggered animations */}
-                <div className="grid md:grid-cols-3 gap-6 mb-8">
-                    {[
-                        { title: 'Total Expenses', value: '$0.00', subtitle: 'This month', delay: '200ms' },
-                        { title: 'Categories', value: '10', subtitle: 'Default categories', delay: '300ms' },
-                        { title: 'Budget Status', value: '--', subtitle: 'Not set yet', delay: '400ms' }
-                    ].map((stat, index) => (
-                        <div
-                            key={index}
-                            className={`bg-purple-900/10 border border-purple-500/20 rounded-xl p-6 transition-all duration-700 hover:scale-105 hover:border-purple-500/40 hover:bg-purple-900/20 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                                }`}
-                            style={{ transitionDelay: stat.delay }}
-                        >
-                            <h3 className="text-gray-400 text-sm font-medium mb-4">{stat.title}</h3>
-                            <p className="text-3xl font-bold text-white mb-1">{stat.value}</p>
-                            <p className="text-sm text-gray-500">{stat.subtitle}</p>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Next Steps with slide in animation */}
-                <div
-                    className={`bg-purple-900/10 border border-purple-500/20 rounded-xl p-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                        }`}
-                    style={{ transitionDelay: '500ms' }}
-                >
-                    <h3 className="text-2xl font-bold text-white mb-6">Quick Start</h3>
-
-                    <div className="space-y-4">
-                        {[
-                            { title: 'Account Created', desc: 'You\'re all set up with Clerk authentication', active: true, delay: '600ms' },
-                            { title: 'Categories Ready', desc: '10 default categories added to your account', active: true, delay: '700ms' },
-                            { title: 'Add Your First Expense', desc: 'Coming soon', active: false, delay: '800ms' },
-                            { title: 'View Analytics', desc: 'Coming soon', active: false, delay: '900ms' }
-                        ].map((step, index) => (
-                            <div
-                                key={index}
-                                className={`flex items-start gap-4 p-4 rounded-lg transition-all duration-700 hover:scale-102 ${step.active
-                                        ? 'bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20'
-                                        : 'bg-gray-900/50 border border-gray-700/20 hover:bg-gray-900/70'
-                                    } ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'
-                                    }`}
-                                style={{ transitionDelay: step.delay }}
-                            >
-                                <div>
-                                    <h4 className={`${step.active ? 'text-white' : 'text-gray-400'} font-semibold mb-1`}>
-                                        {step.title}
-                                    </h4>
-                                    <p className={`${step.active ? 'text-gray-400' : 'text-gray-500'} text-sm`}>
-                                        {step.desc}
-                                    </p>
-                                </div>
+            {/* Stats Grid */}
+            <div className="grid md:grid-cols-3 gap-6">
+                <Card>
+                    <CardBody className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-zinc-400 text-sm font-medium">Total Spent</h3>
+                            <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+                                <Coins size={16} />
                             </div>
+                        </div>
+                        <p className="text-3xl font-bold text-white">
+                            LKR {stats?.total?.toLocaleString() || '0'}
+                        </p>
+                        <p className="text-xs text-zinc-500">This month so far</p>
+                    </CardBody>
+                </Card>
+
+                <Card>
+                    <CardBody className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-zinc-400 text-sm font-medium">Daily Avg</h3>
+                            <div className="p-2 bg-green-500/10 rounded-lg text-green-400">
+                                <TrendingUp size={16} />
+                            </div>
+                        </div>
+                        <p className="text-3xl font-bold text-white">
+                            LKR {(stats?.total / 30 || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </p>
+                        <p className="text-xs text-zinc-500 font-medium text-green-400/80">+2% from last week</p>
+                    </CardBody>
+                </Card>
+
+                <Card>
+                    <CardBody className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-zinc-400 text-sm font-medium">Categories</h3>
+                            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+                                <Tags size={16} />
+                            </div>
+                        </div>
+                        <p className="text-3xl font-bold text-white">
+                            {Object.keys(stats?.byCategory || {}).length || 0}
+                        </p>
+                        <p className="text-xs text-zinc-500 inline-flex items-center gap-1 hover:text-purple-400 cursor-pointer">
+                            View active categories <ArrowRight size={10} />
+                        </p>
+                    </CardBody>
+                </Card>
+            </div>
+
+            {/* Recent Activity & Quick Actions */}
+            <div className="grid lg:grid-cols-2 gap-8">
+                <Card className="h-full">
+                    <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
+                        <h3 className="font-bold text-white">Recent Transactions</h3>
+                        <Link to="/expenses" className="text-xs text-purple-400 hover:text-purple-300">View All</Link>
+                    </div>
+                    <CardBody className="space-y-4">
+                        {stats?.expenses?.length === 0 ? (
+                            <p className="text-zinc-500 text-sm text-center py-8">No transactions yet</p>
+                        ) : (
+                            stats?.expenses?.map((expense) => (
+                                <div key={expense.id} className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <div className="text-lg">{expense.category?.icon || '💰'}</div>
+                                        <div>
+                                            <p className="text-sm font-medium text-white">{expense.description}</p>
+                                            <p className="text-xs text-zinc-500">{expense.category?.name}</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm font-bold text-white">-LKR {Number(expense.amount).toLocaleString()}</p>
+                                </div>
+                            ))
+                        )}
+                    </CardBody>
+                </Card>
+
+                <div className="space-y-6">
+                    <h3 className="text-xl font-bold text-white">Quick Start</h3>
+                    <div className="grid gap-4">
+                        {[
+                            { title: 'Add Expense', desc: 'Log your latest spending', path: '/expenses', color: 'bg-purple-600' },
+                            { title: 'New Category', desc: 'Create a custom tag', path: '/categories', color: 'bg-zinc-800' },
+                        ].map((action, i) => (
+                            <Link key={i} to={action.path}>
+                                <div className="p-4 rounded-xl border border-zinc-800 hover:border-purple-500/30 hover:bg-purple-900/5 transition-all group">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h4 className="font-bold text-white group-hover:text-purple-400 transition-colors">{action.title}</h4>
+                                            <p className="text-sm text-zinc-500">{action.desc}</p>
+                                        </div>
+                                        <div className={cn("p-2 rounded-lg text-white", action.color)}>
+                                            <ArrowRight size={18} />
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
                         ))}
                     </div>
                 </div>
-
-                {/* Animated background gradient */}
-                <div className="fixed -z-10 top-0 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
-                <div className="fixed -z-10 bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
             </div>
         </div>
     );
