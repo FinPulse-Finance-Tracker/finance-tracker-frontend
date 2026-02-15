@@ -12,7 +12,15 @@ import ExpensesPage from './pages/ExpensesPage';
 import CategoriesPage from './pages/CategoriesPage';
 import AppLayout from './components/Layout/AppLayout';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,      // 5 minutes — don't refetch if data is fresh
+      gcTime: 10 * 60 * 1000,         // 10 minutes — keep unused data in cache
+      refetchOnWindowFocus: false,    // Don't refetch when user tabs back
+    },
+  },
+});
 
 function App() {
   const { getToken } = useAuth();

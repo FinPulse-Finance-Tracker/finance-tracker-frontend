@@ -50,10 +50,12 @@ export default function ExpensesPage() {
     });
 
     // Current month expenses (for charts)
-    const { data: monthExpenses } = useQuery({
+    const { data: monthExpensesResponse } = useQuery({
         queryKey: ['expenses', 'monthly', monthStart, today],
-        queryFn: () => expenseService.getExpenses({ startDate: monthStart, endDate: today }),
+        queryFn: () => expenseService.getExpenses({ startDate: monthStart, endDate: today, limit: 500 }),
     });
+
+    const monthExpenses = monthExpensesResponse?.data || monthExpensesResponse || [];
 
     // Monthly comparison
     const comparison = useMemo(() => {
