@@ -36,7 +36,7 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
     const [deleteId, setDeleteId] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
 
-    const { data: expensesResponse, isLoading } = useQuery({
+    const { data: expensesResponse, isLoading, isFetching } = useQuery({
         queryKey: ['expenses', categoryFilter, startDate, endDate],
         queryFn: () => expenseService.getExpenses({
             categoryId: categoryFilter || undefined,
@@ -210,109 +210,120 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
             )}
 
             {/* Expense List Grouped by Date */}
-            <div className="space-y-6">
-                {sortedDateKeys.length === 0 ? (
-                    <div className="text-center py-20 bg-gradient-to-b from-zinc-900/20 to-transparent rounded-2xl border border-zinc-800/50">
-                        <div className="text-6xl mb-4 animate-bounce"></div>
-                        <p className="text-zinc-300 font-semibold text-lg">No expenses found</p>
-                        <p className="text-zinc-500 text-sm mt-2 max-w-xs mx-auto">
-                            {hasActiveFilters
-                                ? 'Try adjusting your filters to see more results'
-                                : 'Start tracking your spending by adding your first expense!'}
-                        </p>
-                        {!hasActiveFilters && (
-                            <button
-                                onClick={onAddClick}
-                                className="mt-6 px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-lg transition-colors"
-                            >
-                                + Add Your First Expense
-                            </button>
-                        )}
+            <div className="relative min-h-[200px]">
+                {/* Loading Overlay */}
+                {isFetching && !isLoading && (
+                    <div className="absolute inset-0 z-10 bg-black/10 backdrop-blur-[2px] rounded-xl flex items-center justify-center transition-all duration-300 animate-in fade-in">
+                        <div className="bg-zinc-900/80 p-3 rounded-full shadow-xl border border-zinc-800">
+                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-purple-500 border-t-transparent"></div>
+                        </div>
                     </div>
-                ) : (
-                    sortedDateKeys.map((dateKey) => (
-                        <div key={dateKey} className="space-y-2">
-                            {/* Date Header */}
-                            <div className="flex items-center gap-3 py-1">
-                                <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest whitespace-nowrap">
-                                    {getDateLabel(dateKey)}
-                                </h3>
-                                <div className="flex-1 h-px bg-zinc-800/50" />
-                                <span className="text-xs text-zinc-600 whitespace-nowrap">
-                                    LKR {groupedExpenses[dateKey].reduce((s, e) => s + Number(e.amount), 0).toLocaleString()}
-                                </span>
-                            </div>
+                )}
 
-                            {/* Expense Rows */}
-                            <div className="space-y-2">
-                                {groupedExpenses[dateKey].map((expense, index) => (
-                                    <motion.div
-                                        key={expense.id}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: index * 0.02 }}
-                                    >
-                                        <Card className="group hover:border-zinc-700 transition-all duration-200">
-                                            <CardBody className="flex items-center justify-between p-4 px-5">
-                                                <div className="flex items-center gap-4 min-w-0">
-                                                    <div
-                                                        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
-                                                        style={{
-                                                            backgroundColor: `${expense.category?.color || '#333'}15`,
-                                                            color: expense.category?.color || '#888',
-                                                        }}
-                                                    >
-                                                        {expense.category?.icon || '💰'}
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <h4 className="font-semibold text-white text-sm truncate">
-                                                            {expense.description}
-                                                        </h4>
-                                                        <div className="flex items-center gap-2 mt-0.5">
-                                                            <span className="text-[11px] text-zinc-500 flex items-center gap-1">
-                                                                <Tag size={10} />
-                                                                {expense.category?.name || 'Uncategorized'}
-                                                            </span>
-                                                            {expense.notes && (
-                                                                <>
-                                                                    <span className="text-zinc-700">·</span>
-                                                                    <span className="text-[11px] text-zinc-600 truncate max-w-[120px]">
-                                                                        {expense.notes}
-                                                                    </span>
-                                                                </>
-                                                            )}
+                <div className={`space-y-6 transition-all duration-300 ${isFetching ? 'opacity-60 scale-[0.99] filter blur-[1px]' : 'opacity-100 scale-100'}`}>
+                    {sortedDateKeys.length === 0 ? (
+                        <div className="text-center py-20 bg-gradient-to-b from-zinc-900/20 to-transparent rounded-2xl border border-zinc-800/50">
+                            <div className="text-6xl mb-4 animate-bounce"></div>
+                            <p className="text-zinc-300 font-semibold text-lg">No expenses found</p>
+                            <p className="text-zinc-500 text-sm mt-2 max-w-xs mx-auto">
+                                {hasActiveFilters
+                                    ? 'Try adjusting your filters to see more results'
+                                    : 'Start tracking your spending by adding your first expense!'}
+                            </p>
+                            {!hasActiveFilters && (
+                                <button
+                                    onClick={onAddClick}
+                                    className="mt-6 px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-lg transition-colors"
+                                >
+                                    + Add Your First Expense
+                                </button>
+                            )}
+                        </div>
+                    ) : (
+                        sortedDateKeys.map((dateKey) => (
+                            <div key={dateKey} className="space-y-2">
+                                {/* Date Header */}
+                                <div className="flex items-center gap-3 py-1">
+                                    <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest whitespace-nowrap">
+                                        {getDateLabel(dateKey)}
+                                    </h3>
+                                    <div className="flex-1 h-px bg-zinc-800/50" />
+                                    <span className="text-xs text-zinc-600 whitespace-nowrap">
+                                        LKR {groupedExpenses[dateKey].reduce((s, e) => s + Number(e.amount), 0).toLocaleString()}
+                                    </span>
+                                </div>
+
+                                {/* Expense Rows */}
+                                <div className="space-y-2">
+                                    {groupedExpenses[dateKey].map((expense, index) => (
+                                        <motion.div
+                                            key={expense.id}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: index * 0.02 }}
+                                        >
+                                            <Card className="group hover:border-zinc-700 transition-all duration-200">
+                                                <CardBody className="flex items-center justify-between p-4 px-5">
+                                                    <div className="flex items-center gap-4 min-w-0">
+                                                        <div
+                                                            className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
+                                                            style={{
+                                                                backgroundColor: `${expense.category?.color || '#333'}15`,
+                                                                color: expense.category?.color || '#888',
+                                                            }}
+                                                        >
+                                                            {expense.category?.icon || '💰'}
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <h4 className="font-semibold text-white text-sm truncate">
+                                                                {expense.description}
+                                                            </h4>
+                                                            <div className="flex items-center gap-2 mt-0.5">
+                                                                <span className="text-[11px] text-zinc-500 flex items-center gap-1">
+                                                                    <Tag size={10} />
+                                                                    {expense.category?.name || 'Uncategorized'}
+                                                                </span>
+                                                                {expense.notes && (
+                                                                    <>
+                                                                        <span className="text-zinc-700">·</span>
+                                                                        <span className="text-[11px] text-zinc-600 truncate max-w-[120px]">
+                                                                            {expense.notes}
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className="flex items-center gap-3 shrink-0">
-                                                    <p className="font-bold text-white text-sm tabular-nums">
-                                                        -LKR {Number(expense.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                    </p>
-                                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                                                        <button
-                                                            onClick={() => onEditClick(expense)}
-                                                            className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors"
-                                                            title="Edit"
-                                                        >
-                                                            <Pencil size={14} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setDeleteId(expense.id)}
-                                                            className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors"
-                                                            title="Delete"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
+                                                    <div className="flex items-center gap-3 shrink-0">
+                                                        <p className="font-bold text-white text-sm tabular-nums">
+                                                            -LKR {Number(expense.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        </p>
+                                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                                                            <button
+                                                                onClick={() => onEditClick(expense)}
+                                                                className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors"
+                                                                title="Edit"
+                                                            >
+                                                                <Pencil size={14} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setDeleteId(expense.id)}
+                                                                className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors"
+                                                                title="Delete"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </CardBody>
-                                        </Card>
-                                    </motion.div>
-                                ))}
+                                                </CardBody>
+                                            </Card>
+                                        </motion.div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ))
-                )}
+                        ))
+                    )}
+                </div>
             </div>
 
             <ConfirmModal

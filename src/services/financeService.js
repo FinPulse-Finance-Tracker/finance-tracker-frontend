@@ -16,3 +16,7 @@ export const categoryService = {
     updateCategory: (id, data) => api.patch(`/categories/${id}`, data).then(res => res.data),
     deleteCategory: (id) => api.delete(`/categories/${id}`).then(res => res.data),
 };
+
+export const budgetService = {
+    setBudget: (data) => api.post('/budgets', data).then(res => res.data),
+};

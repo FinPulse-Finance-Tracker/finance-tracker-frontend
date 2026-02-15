@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { categoryService } from '../../services/financeService';
+import { categoryService, budgetService } from '../../services/financeService';
 import { Modal } from '../UI/Modal';
 import { Input } from '../UI/Input';
 import { Button } from '../UI/Button';
@@ -53,10 +53,24 @@ export default function CategoryModal({ isOpen, onClose, category = null, isBudg
 
     const mutation = useMutation({
         mutationFn: (data) => {
+            // Check if we are only setting a budget
+            if (isBudgetOnly) {
+                return budgetService.setBudget({
+                    categoryId: category.id,
+                    amount: parseFloat(data.budgetAmount),
+                    period: 'monthly'
+                });
+            }
+
             const payload = {
                 ...data,
                 budgetAmount: data.budgetAmount ? parseFloat(data.budgetAmount) : null,
             };
+
+            // If editing a category AND it is a system category (isDefault), we should separate budget update
+            // But currently the UI only allows editing custom categories fully.
+            // If isBudgetOnly is false, it means we are editing a custom category or creating a new one.
+
             if (isEditing) {
                 return categoryService.updateCategory(category.id, payload);
             }
