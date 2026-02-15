@@ -36,14 +36,17 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
     const [deleteId, setDeleteId] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
 
-    const { data: expenses, isLoading } = useQuery({
+    const { data: expensesResponse, isLoading } = useQuery({
         queryKey: ['expenses', categoryFilter, startDate, endDate],
         queryFn: () => expenseService.getExpenses({
             categoryId: categoryFilter || undefined,
             startDate: startDate || undefined,
             endDate: endDate || undefined,
+            limit: 200, // Get plenty for client-side filtering
         }),
     });
+
+    const expenses = expensesResponse?.data || expensesResponse || [];
 
     const { data: categories } = useQuery({
         queryKey: ['categories'],
@@ -210,7 +213,7 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
             <div className="space-y-6">
                 {sortedDateKeys.length === 0 ? (
                     <div className="text-center py-20 bg-gradient-to-b from-zinc-900/20 to-transparent rounded-2xl border border-zinc-800/50">
-                        <div className="text-6xl mb-4 animate-bounce">💸</div>
+                        <div className="text-6xl mb-4 animate-bounce"></div>
                         <p className="text-zinc-300 font-semibold text-lg">No expenses found</p>
                         <p className="text-zinc-500 text-sm mt-2 max-w-xs mx-auto">
                             {hasActiveFilters
