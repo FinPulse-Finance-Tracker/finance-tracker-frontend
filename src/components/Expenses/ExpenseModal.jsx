@@ -123,7 +123,7 @@ export default function ExpenseModal({ isOpen, onClose, expense = null }) {
             const payload = {
                 ...data,
                 amount: parseFloat(data.amount),
-                date: selectedDate.toISOString().split('T')[0],
+                date: format(selectedDate, 'yyyy-MM-dd'),
             };
             if (isEditing) {
                 return expenseService.updateExpense(expense.id, payload);

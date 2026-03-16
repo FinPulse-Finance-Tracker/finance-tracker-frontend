@@ -3,46 +3,52 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { expenseService, categoryService } from '../../services/financeService';
 import { Card, CardBody } from '../UI/Card';
 import { Button } from '../UI/Button';
-import { Plus, Search, Tag, Calendar, Pencil, Trash2 } from 'lucide-react';
-import { format, isToday, isYesterday, parseISO } from 'date-fns';
+import { Plus, Search, Calendar, Pencil, Trash2, Tag, CalendarDays } from 'lucide-react';
+import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../UI/ConfirmModal';
-
-function getDateLabel(dateStr) {
-    const date = parseISO(dateStr);
-    if (isToday(date)) return 'Today';
-    if (isYesterday(date)) return 'Yesterday';
-    return format(date, 'MMMM dd, yyyy');
-}
-
-function groupByDate(expenses) {
-    if (!expenses) return {};
-    const groups = {};
-    expenses.forEach((expense) => {
-        const key = format(parseISO(expense.date), 'yyyy-MM-dd');
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(expense);
-    });
-    return groups;
-}
 
 export default function ExpenseList({ onAddClick, onEditClick }) {
     const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+
+    // Start with current month and year
+    const currentDate = new Date();
+    const [selectedMonth, setSelectedMonth] = useState((currentDate.getMonth() + 1).toString().padStart(2, '0'));
+    const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
+
     const [deleteId, setDeleteId] = useState(null);
-    const [showFilters, setShowFilters] = useState(false);
+
+    // Compute start and end dates based on month/year selection
+    const filterDates = useMemo(() => {
+        if (!selectedMonth && !selectedYear) return { start: undefined, end: undefined };
+
+        const year = selectedYear ? parseInt(selectedYear) : currentDate.getFullYear();
+        // If a month is selected, filter by that month. Else use the whole year.
+        if (selectedMonth) {
+            const dateStr = `${year}-${selectedMonth}-01`;
+            const date = parseISO(dateStr);
+            return {
+                start: format(startOfMonth(date), 'yyyy-MM-dd'),
+                end: format(endOfMonth(date), 'yyyy-MM-dd')
+            };
+        } else {
+            return {
+                start: `${year}-01-01`,
+                end: `${year}-12-31`
+            };
+        }
+    }, [selectedMonth, selectedYear]);
 
     const { data: expensesResponse, isLoading, isFetching } = useQuery({
-        queryKey: ['expenses', categoryFilter, startDate, endDate],
+        queryKey: ['expenses', categoryFilter, filterDates.start, filterDates.end],
         queryFn: () => expenseService.getExpenses({
             categoryId: categoryFilter || undefined,
-            startDate: startDate || undefined,
-            endDate: endDate || undefined,
-            limit: 200, // Get plenty for client-side filtering
+            startDate: filterDates.start,
+            endDate: filterDates.end,
+            limit: 500, // Get plenty for client-side filtering
         }),
     });
 
@@ -71,32 +77,37 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
     // Client-side search filter
     const filteredExpenses = useMemo(() => {
         if (!expenses) return [];
-        if (!searchTerm.trim()) return expenses;
+        if (!searchTerm.trim()) return expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
         const term = searchTerm.toLowerCase();
         return expenses.filter(e =>
             e.description?.toLowerCase().includes(term) ||
             e.category?.name?.toLowerCase().includes(term) ||
-            e.notes?.toLowerCase().includes(term)
-        );
+            e.notes?.toLowerCase().includes(term) ||
+            e.merchant?.toLowerCase().includes(term)
+        ).sort((a, b) => new Date(b.date) - new Date(a.date));
     }, [expenses, searchTerm]);
 
-    const groupedExpenses = useMemo(() => groupByDate(filteredExpenses), [filteredExpenses]);
-    const sortedDateKeys = useMemo(() => Object.keys(groupedExpenses).sort((a, b) => b.localeCompare(a)), [groupedExpenses]);
+    const hasActiveFilters = categoryFilter || selectedMonth || selectedYear || searchTerm;
 
-    const handleClearFilters = () => {
-        setCategoryFilter('');
-        setStartDate('');
-        setEndDate('');
-        setSearchTerm('');
-    };
+    // Helper arrays for dropdowns
+    const months = [
+        { value: '01', label: 'January' }, { value: '02', label: 'February' },
+        { value: '03', label: 'March' }, { value: '04', label: 'April' },
+        { value: '05', label: 'May' }, { value: '06', label: 'June' },
+        { value: '07', label: 'July' }, { value: '08', label: 'August' },
+        { value: '09', label: 'September' }, { value: '10', label: 'October' },
+        { value: '11', label: 'November' }, { value: '12', label: 'December' },
+    ];
 
-    const hasActiveFilters = categoryFilter || startDate || endDate || searchTerm;
+    // Generate recent years dynamically
+    const currentY = currentDate.getFullYear();
+    const years = [currentY, currentY - 1, currentY - 2, currentY - 3];
 
     if (isLoading) {
         return (
-            <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-20 bg-zinc-900/50 animate-pulse rounded-xl border border-zinc-800" />
+            <div className="space-y-4 shadow-xl border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/50">
+                {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="h-16 border-b border-zinc-800/50 bg-zinc-900/20 animate-pulse" />
                 ))}
             </div>
         );
@@ -107,222 +118,168 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-xl font-bold text-white">Expenses</h2>
-                    <p className="text-sm text-zinc-400">Track and manage your spending</p>
+                    <h2 className="text-xl font-bold text-white">Expenses Data</h2>
+                    <p className="text-sm text-zinc-400">View and manage all your expense records</p>
                 </div>
-                <Button onClick={onAddClick} className="gap-2">
+                <Button onClick={onAddClick} className="gap-2 shrink-0">
                     <Plus size={18} />
                     Add Expense
                 </Button>
             </div>
 
-            {/* Search & Filter Bar */}
-            <div className="space-y-3">
-                <div className="flex gap-3">
-                    <div className="relative flex-1">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-                        <input
-                            type="text"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Search expenses..."
-                            className="w-full h-10 pl-10 pr-4 rounded-lg border border-zinc-800 bg-zinc-900/50 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 ring-offset-black transition-all"
-                        />
-                    </div>
-                    <Button
-                        variant={showFilters ? 'outline' : 'secondary'}
-                        onClick={() => setShowFilters(!showFilters)}
-                        className="gap-2"
-                    >
-                        <Calendar size={16} />
-                        Filters
-                    </Button>
+            {/* Search Bar */}
+            <div className="flex gap-3">
+                <div className="relative flex-1">
+                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search by description, merchant, or notes..."
+                        className="w-full h-10 pl-10 pr-4 rounded-xl border border-zinc-800 bg-zinc-900/50 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 ring-offset-black transition-all"
+                    />
                 </div>
-
-                {/* Expandable Filter Panel */}
-                <AnimatePresence>
-                    {showFilters && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden"
-                        >
-                            <Card className="border-zinc-800">
-                                <CardBody className="p-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-medium text-zinc-400 ml-1">Category</label>
-                                            <select
-                                                value={categoryFilter}
-                                                onChange={(e) => setCategoryFilter(e.target.value)}
-                                                className="w-full h-10 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all appearance-none"
-                                            >
-                                                <option value="" className="bg-zinc-900">All Categories</option>
-                                                {categories?.map((cat) => (
-                                                    <option key={cat.id} value={cat.id} className="bg-zinc-900">
-                                                        {cat.icon} {cat.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-medium text-zinc-400 ml-1">From Date</label>
-                                            <input
-                                                type="date"
-                                                value={startDate}
-                                                onChange={(e) => setStartDate(e.target.value)}
-                                                className="w-full h-10 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all"
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-medium text-zinc-400 ml-1">To Date</label>
-                                            <input
-                                                type="date"
-                                                value={endDate}
-                                                onChange={(e) => setEndDate(e.target.value)}
-                                                className="w-full h-10 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all"
-                                            />
-                                        </div>
-                                    </div>
-                                    {hasActiveFilters && (
-                                        <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-end">
-                                            <button
-                                                onClick={handleClearFilters}
-                                                className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
-                                            >
-                                                Clear All Filters
-                                            </button>
-                                        </div>
-                                    )}
-                                </CardBody>
-                            </Card>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
             </div>
 
-            {/* Results count */}
-            {hasActiveFilters && (
-                <p className="text-xs text-zinc-500">
-                    Showing {filteredExpenses.length} result{filteredExpenses.length !== 1 ? 's' : ''}
+            {/* Results count & loading status */}
+            <div className="flex justify-between items-center px-1">
+                <p className="text-xs font-medium text-zinc-500">
+                    Showing {filteredExpenses.length} expense{filteredExpenses.length !== 1 ? 's' : ''}
                 </p>
-            )}
-
-            {/* Expense List Grouped by Date */}
-            <div className="relative min-h-[200px]">
-                {/* Loading Overlay */}
                 {isFetching && !isLoading && (
-                    <div className="absolute inset-0 z-10 bg-black/10 backdrop-blur-[2px] rounded-xl flex items-center justify-center transition-all duration-300 animate-in fade-in">
-                        <div className="bg-zinc-900/80 p-3 rounded-full shadow-xl border border-zinc-800">
-                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-purple-500 border-t-transparent"></div>
-                        </div>
+                    <div className="flex items-center gap-2 text-xs text-purple-400">
+                        <div className="animate-spin rounded-full h-3 w-3 border-[1.5px] border-purple-500 border-t-transparent"></div>
+                        Refreshing...
                     </div>
                 )}
+            </div>
 
-                <div className={`space-y-6 transition-all duration-300 ${isFetching ? 'opacity-60 scale-[0.99] filter blur-[1px]' : 'opacity-100 scale-100'}`}>
-                    {sortedDateKeys.length === 0 ? (
-                        <div className="text-center py-20 bg-gradient-to-b from-zinc-900/20 to-transparent rounded-2xl border border-zinc-800/50">
-                            <div className="text-6xl mb-4 animate-bounce"></div>
-                            <p className="text-zinc-300 font-semibold text-lg">No expenses found</p>
-                            <p className="text-zinc-500 text-sm mt-2 max-w-xs mx-auto">
-                                {hasActiveFilters
-                                    ? 'Try adjusting your filters to see more results'
-                                    : 'Start tracking your spending by adding your first expense!'}
-                            </p>
-                            {!hasActiveFilters && (
-                                <button
-                                    onClick={onAddClick}
-                                    className="mt-6 px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-lg transition-colors"
-                                >
-                                    + Add Your First Expense
-                                </button>
-                            )}
-                        </div>
-                    ) : (
-                        sortedDateKeys.map((dateKey) => (
-                            <div key={dateKey} className="space-y-2">
-                                {/* Date Header */}
-                                <div className="flex items-center gap-3 py-1">
-                                    <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest whitespace-nowrap">
-                                        {getDateLabel(dateKey)}
-                                    </h3>
-                                    <div className="flex-1 h-px bg-zinc-800/50" />
-                                    <span className="text-xs text-zinc-600 whitespace-nowrap">
-                                        LKR {groupedExpenses[dateKey].reduce((s, e) => s + Number(e.amount), 0).toLocaleString()}
-                                    </span>
-                                </div>
-
-                                {/* Expense Rows */}
-                                <div className="space-y-2">
-                                    {groupedExpenses[dateKey].map((expense, index) => (
-                                        <motion.div
-                                            key={expense.id}
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: index * 0.02 }}
+            {/* Expenses Table */}
+            <div className="w-full border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/30">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                        <thead className="bg-zinc-800/80 text-zinc-400 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th className="px-5 py-3 font-semibold align-top w-56">
+                                    <div className="mb-2.5 mt-0.5">Date</div>
+                                    <div className="flex gap-1.5">
+                                        <select
+                                            value={selectedMonth}
+                                            onChange={(e) => setSelectedMonth(e.target.value)}
+                                            className="w-full h-8 rounded-md border border-zinc-700 bg-zinc-900 px-1.5 text-xs text-zinc-300 focus:outline-none focus:border-purple-500 transition-all cursor-pointer"
                                         >
-                                            <Card className="group hover:border-zinc-700 transition-all duration-200">
-                                                <CardBody className="flex items-center justify-between p-4 px-5">
-                                                    <div className="flex items-center gap-4 min-w-0">
-                                                        <div
-                                                            className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
-                                                            style={{
-                                                                backgroundColor: `${expense.category?.color || '#333'}15`,
-                                                                color: expense.category?.color || '#888',
-                                                            }}
-                                                        >
-                                                            {expense.category?.icon || '💰'}
-                                                        </div>
-                                                        <div className="min-w-0">
-                                                            <h4 className="font-semibold text-white text-sm truncate">
-                                                                {expense.description}
-                                                            </h4>
-                                                            <div className="flex items-center gap-2 mt-0.5">
-                                                                <span className="text-[11px] text-zinc-500 flex items-center gap-1">
-                                                                    <Tag size={10} />
-                                                                    {expense.category?.name || 'Uncategorized'}
-                                                                </span>
-                                                                {expense.notes && (
-                                                                    <>
-                                                                        <span className="text-zinc-700">·</span>
-                                                                        <span className="text-[11px] text-zinc-600 truncate max-w-[120px]">
-                                                                            {expense.notes}
-                                                                        </span>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-3 shrink-0">
-                                                        <p className="font-bold text-white text-sm tabular-nums">
-                                                            -LKR {Number(expense.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                        </p>
-                                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                                                            <button
-                                                                onClick={() => onEditClick(expense)}
-                                                                className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors"
-                                                                title="Edit"
-                                                            >
-                                                                <Pencil size={14} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setDeleteId(expense.id)}
-                                                                className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors"
-                                                                title="Delete"
-                                                            >
-                                                                <Trash2 size={14} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </CardBody>
-                                            </Card>
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))
-                    )}
+                                            <option value="">All</option>
+                                            {months.map(m => <option key={m.value} value={m.value}>{m.label.substring(0, 3)}</option>)}
+                                        </select>
+                                        <select
+                                            value={selectedYear}
+                                            onChange={(e) => setSelectedYear(e.target.value)}
+                                            className="w-full h-8 rounded-md border border-zinc-700 bg-zinc-900 px-1.5 text-xs text-zinc-300 focus:outline-none focus:border-purple-500 transition-all cursor-pointer"
+                                        >
+                                            <option value="">All</option>
+                                            {years.map(y => <option key={y} value={y.toString()}>{y}</option>)}
+                                        </select>
+                                    </div>
+                                </th>
+                                <th className="px-5 py-3 font-semibold align-top">
+                                    <div className="mb-2 mt-0.5">Description</div>
+                                </th>
+                                <th className="px-5 py-3 font-semibold align-top w-48">
+                                    <div className="mb-2.5 mt-0.5">Category</div>
+                                    <select
+                                        value={categoryFilter}
+                                        onChange={(e) => setCategoryFilter(e.target.value)}
+                                        className="w-full h-8 rounded-md border border-zinc-700 bg-zinc-900 px-1.5 text-xs text-zinc-300 focus:outline-none focus:border-purple-500 transition-all cursor-pointer"
+                                    >
+                                        <option value="">All Categories</option>
+                                        {categories?.map((cat) => (
+                                            <option key={cat.id} value={cat.id}>
+                                                {cat.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </th>
+                                <th className="px-5 py-3 font-semibold align-top text-right">
+                                    <div className="mb-2 mt-0.5">Amount (LKR)</div>
+                                </th>
+                                <th className="px-5 py-3 font-semibold align-top text-center rounded-tr-xl">
+                                    <div className="mb-2 mt-0.5">Actions</div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-800/50">
+                            {filteredExpenses.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" className="px-5 py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center text-zinc-500">
+                                            <CalendarDays size={32} className="mb-3 opacity-20" />
+                                            <p className="text-sm font-medium text-zinc-400">No expenses found</p>
+                                            <p className="text-xs mt-1">Try adjusting your filters or add a new expense.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredExpenses.map((expense, index) => (
+                                    <motion.tr
+                                        key={expense.id}
+                                        initial={{ opacity: 0, y: 5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.2, delay: index * 0.02 }}
+                                        className="hover:bg-zinc-800/30 transition-colors group"
+                                    >
+                                        <td className="px-5 py-4">
+                                            <span className="text-zinc-300 font-medium">{format(parseISO(expense.date), 'MMM dd, yyyy')}</span>
+                                        </td>
+                                        <td className="px-5 py-4 min-w-[200px]">
+                                            <div className="flex flex-col">
+                                                <span className="text-white font-medium truncate max-w-[250px]">{expense.description}</span>
+                                                {(expense.merchant || expense.notes) && (
+                                                    <span className="text-[11px] text-zinc-500 truncate max-w-[250px] mt-0.5">
+                                                        {expense.merchant ? `Merchant: ${expense.merchant}` : expense.notes}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium border"
+                                                style={{
+                                                    backgroundColor: `${expense.category?.color || '#333'}15`,
+                                                    color: expense.category?.color || '#888',
+                                                    borderColor: `${expense.category?.color || '#333'}30`
+                                                }}
+                                            >
+                                                <span>{expense.category?.icon || '🏷️'}</span>
+                                                <span>{expense.category?.name || 'Uncategorized'}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-5 py-4 text-right">
+                                            <span className="font-bold text-white tabular-nums">
+                                                {Number(expense.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-4 text-center">
+                                            <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200">
+                                                <button
+                                                    onClick={() => onEditClick(expense)}
+                                                    className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                    title="Edit"
+                                                >
+                                                    <Pencil size={14} />
+                                                </button>
+                                                <button
+                                                    onClick={() => setDeleteId(expense.id)}
+                                                    className="p-1.5 rounded-md text-zinc-400 hover:text-red-400 hover:bg-zinc-700 transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </motion.tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
