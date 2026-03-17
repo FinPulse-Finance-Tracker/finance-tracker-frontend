@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { expenseService, categoryService } from '../../services/financeService';
 import { Card, CardBody } from '../UI/Card';
 import { Button } from '../UI/Button';
-import { Plus, Search, Calendar, Pencil, Trash2, Tag, CalendarDays } from 'lucide-react';
+import { Plus, Search, Calendar, Pencil, Trash2, Tag, CalendarDays, Download, ChevronLeft, ChevronRight, Repeat } from 'lucide-react';
 import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -14,10 +14,13 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
 
-    // Start with current month and year
     const currentDate = new Date();
     const [selectedMonth, setSelectedMonth] = useState((currentDate.getMonth() + 1).toString().padStart(2, '0'));
     const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
+
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 20;
 
     const [deleteId, setDeleteId] = useState(null);
 
@@ -74,18 +77,80 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
         }
     });
 
+    // Reset to page 1 when filters change
+    const handleClearFilters = () => {
+        setCategoryFilter('');
+        setSelectedMonth('');
+        setSelectedYear('');
+        setSearchTerm('');
+        setCurrentPage(1);
+    };
+
     // Client-side search filter
     const filteredExpenses = useMemo(() => {
-        if (!expenses) return [];
-        if (!searchTerm.trim()) return expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
-        const term = searchTerm.toLowerCase();
-        return expenses.filter(e =>
-            e.description?.toLowerCase().includes(term) ||
-            e.category?.name?.toLowerCase().includes(term) ||
-            e.notes?.toLowerCase().includes(term) ||
-            e.merchant?.toLowerCase().includes(term)
-        ).sort((a, b) => new Date(b.date) - new Date(a.date));
+        let result = expenses;
+        if (searchTerm.trim()) {
+            const term = searchTerm.toLowerCase();
+            result = expenses.filter(e =>
+                e.description?.toLowerCase().includes(term) ||
+                e.category?.name?.toLowerCase().includes(term) ||
+                e.notes?.toLowerCase().includes(term) ||
+                e.merchant?.toLowerCase().includes(term)
+            );
+        }
+        return result.sort((a, b) => new Date(b.date) - new Date(a.date));
     }, [expenses, searchTerm]);
+
+    // Pagination Logic
+    const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
+    const paginatedExpenses = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredExpenses.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredExpenses, currentPage, itemsPerPage]);
+
+    // Reset page if filtered list is smaller than current page
+    useEffect(() => {
+        if (currentPage > totalPages && totalPages > 0) {
+            setCurrentPage(1);
+        }
+    }, [filteredExpenses.length, totalPages, currentPage]);
+
+    // CSV Export Logic
+    const handleExportCSV = () => {
+        if (!filteredExpenses.length) return toast.error('No expenses to export');
+
+        try {
+            // CSV Header
+            const headers = ['Date', 'Description', 'Merchant', 'Category', 'Amount (LKR)', 'Notes'];
+
+            // Map data to CSV rows
+            const rows = filteredExpenses.map(e => {
+                return [
+                    format(parseISO(e.date), 'yyyy-MM-dd'),
+                    `"${(e.description || '').replace(/"/g, '""')}"`,
+                    `"${(e.merchant || '').replace(/"/g, '""')}"`,
+                    `"${(e.category?.name || 'Uncategorized').replace(/"/g, '""')}"`,
+                    e.amount,
+                    `"${(e.notes || '').replace(/"/g, '""')}"`
+                ].join(',');
+            });
+
+            const csvContent = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `expenses_export_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            toast.success('Expenses exported successfully');
+        } catch (error) {
+            console.error('Export Error:', error);
+            toast.error('Failed to export expenses');
+        }
+    };
 
     const hasActiveFilters = categoryFilter || selectedMonth || selectedYear || searchTerm;
 
@@ -121,10 +186,16 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
                     <h2 className="text-xl font-bold text-white">Expenses Data</h2>
                     <p className="text-sm text-zinc-400">View and manage all your expense records</p>
                 </div>
-                <Button onClick={onAddClick} className="gap-2 shrink-0">
-                    <Plus size={18} />
-                    Add Expense
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="secondary" onClick={handleExportCSV} className="gap-2 shrink-0">
+                        <Download size={18} />
+                        Export CSV
+                    </Button>
+                    <Button onClick={onAddClick} className="gap-2 shrink-0">
+                        <Plus size={18} />
+                        Add Expense
+                    </Button>
+                </div>
             </div>
 
             {/* Search Bar */}
@@ -144,7 +215,7 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
             {/* Results count & loading status */}
             <div className="flex justify-between items-center px-1">
                 <p className="text-xs font-medium text-zinc-500">
-                    Showing {filteredExpenses.length} expense{filteredExpenses.length !== 1 ? 's' : ''}
+                    Showing {paginatedExpenses.length} of {filteredExpenses.length} expense{filteredExpenses.length !== 1 ? 's' : ''}
                 </p>
                 {isFetching && !isLoading && (
                     <div className="flex items-center gap-2 text-xs text-purple-400">
@@ -208,7 +279,7 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-800/50">
-                            {filteredExpenses.length === 0 ? (
+                            {paginatedExpenses.length === 0 ? (
                                 <tr>
                                     <td colSpan="5" className="px-5 py-12 text-center">
                                         <div className="flex flex-col items-center justify-center text-zinc-500">
@@ -219,7 +290,7 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredExpenses.map((expense, index) => (
+                                paginatedExpenses.map((expense, index) => (
                                     <motion.tr
                                         key={expense.id}
                                         initial={{ opacity: 0, y: 5 }}
@@ -230,12 +301,18 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
                                         <td className="px-5 py-4">
                                             <span className="text-zinc-300 font-medium">{format(parseISO(expense.date), 'MMM dd, yyyy')}</span>
                                         </td>
-                                        <td className="px-5 py-4 min-w-[200px]">
+                                        <td className="px-5 py-4">
                                             <div className="flex flex-col">
-                                                <span className="text-white font-medium truncate max-w-[250px]">{expense.description}</span>
-                                                {(expense.merchant || expense.notes) && (
-                                                    <span className="text-[11px] text-zinc-500 truncate max-w-[250px] mt-0.5">
-                                                        {expense.merchant ? `Merchant: ${expense.merchant}` : expense.notes}
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-medium text-white line-clamp-1">{expense.description}</span>
+                                                    {expense.isRecurring && (
+                                                        <Repeat size={14} className="text-purple-400 shrink-0" title={`Recurring: ${expense.recurringInterval}`} />
+                                                    )}
+                                                </div>
+                                                {expense.merchant && (
+                                                    <span className="text-[11px] text-zinc-500 mt-0.5 line-clamp-1 flex items-center gap-1">
+                                                        <Tag size={10} className="opacity-50" />
+                                                        {expense.merchant}
                                                     </span>
                                                 )}
                                             </div>
@@ -282,6 +359,33 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
                     </table>
                 </div>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-between px-2 py-4">
+                    <p className="text-xs text-zinc-500">
+                        Page {currentPage} of {totalPages}
+                    </p>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="px-3 py-1.5 min-w-[36px]"
+                        >
+                            <ChevronLeft size={16} />
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="px-3 py-1.5 min-w-[36px]"
+                        >
+                            <ChevronRight size={16} />
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             <ConfirmModal
                 isOpen={!!deleteId}
