@@ -10,7 +10,21 @@ export const expenseService = {
 };
 
 export const categoryService = {
-    getCategories: () => api.get('/categories').then(res => res.data),
+    getCategories: async () => {
+        try {
+            const data = await api.get('/categories').then(res => res.data);
+            // Cache successful result
+            localStorage.setItem('cached_categories', JSON.stringify(data));
+            return data;
+        } catch (error) {
+            console.warn('Failed to fetch categories, falling back to cache:', error);
+            const cached = localStorage.getItem('cached_categories');
+            if (cached) {
+                return JSON.parse(cached);
+            }
+            throw error; // No cache, still fail
+        }
+    },
     getCategory: (id) => api.get(`/categories/${id}`).then(res => res.data),
     createCategory: (data) => api.post('/categories', data).then(res => res.data),
     updateCategory: (id, data) => api.patch(`/categories/${id}`, data).then(res => res.data),
