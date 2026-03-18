@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { expenseService, categoryService } from '../../services/financeService';
 import { Card, CardBody } from '../UI/Card';
 import { Button } from '../UI/Button';
-import { Plus, Search, Calendar, Pencil, Trash2, Tag, CalendarDays, Download, ChevronLeft, ChevronRight, Repeat } from 'lucide-react';
+import { Plus, Search, Calendar, Pencil, Trash2, Tag, CalendarDays, Download, ChevronLeft, ChevronRight, Repeat, RefreshCw } from 'lucide-react';
 import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -187,6 +187,14 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
                     <p className="text-sm text-zinc-400">View and manage all your expense records</p>
                 </div>
                 <div className="flex gap-2">
+                    <Button
+                        variant="secondary"
+                        onClick={() => queryClient.invalidateQueries(['expenses'])}
+                        className="p-2 shrink-0"
+                        title="Refresh Data"
+                    >
+                        <RefreshCw size={18} className={isFetching ? 'animate-spin' : ''} />
+                    </Button>
                     <Button variant="secondary" onClick={handleExportCSV} className="gap-2 shrink-0">
                         <Download size={18} />
                         Export CSV

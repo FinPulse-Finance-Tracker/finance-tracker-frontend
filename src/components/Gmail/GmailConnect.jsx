@@ -44,8 +44,9 @@ export default function GmailConnect({ onImported }) {
                 setShowImportModal(true);
             }
         },
-        onError: () => {
-            toast.error('Failed to sync emails. Please reconnect Gmail.');
+        onError: (error) => {
+            const errorMessage = error.response?.data?.message || 'Failed to sync emails. Please reconnect Gmail.';
+            toast.error(errorMessage);
         },
     });
 
@@ -65,8 +66,9 @@ export default function GmailConnect({ onImported }) {
             setIsConnecting(true);
             const { authUrl } = await gmailService.getConnectUrl();
             window.location.href = authUrl;
-        } catch {
-            toast.error('Failed to start Gmail connection. Please try again.');
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Failed to start Gmail connection. Please try again.';
+            toast.error(errorMessage);
             setIsConnecting(false);
         }
     };
