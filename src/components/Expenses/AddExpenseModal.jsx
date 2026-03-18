@@ -9,15 +9,19 @@ import { toast } from 'react-hot-toast';
 
 export default function AddExpenseModal({ isOpen, onClose }) {
     const queryClient = useQueryClient();
-    const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    const { register, handleSubmit, reset, watch, formState: { errors } } = useForm({
         defaultValues: {
             amount: '',
             description: '',
             categoryId: '',
             date: new Date().toISOString().split('T')[0],
             notes: '',
+            isRecurring: false,
+            recurringInterval: 'monthly',
         }
     });
+
+    const isRecurring = watch('isRecurring');
 
     const { data: categories } = useQuery({
         queryKey: ['categories'],
@@ -90,6 +94,39 @@ export default function AddExpenseModal({ isOpen, onClose }) {
                     placeholder="Add more details..."
                     {...register('notes')}
                 />
+
+                <div className="space-y-3 p-4 bg-zinc-900/50 rounded-xl border border-zinc-800/50">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                        <div className="relative flex items-center">
+                            <input
+                                type="checkbox"
+                                className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-zinc-700 bg-zinc-800 transition-all checked:border-purple-500 checked:bg-purple-500"
+                                {...register('isRecurring')}
+                            />
+                            <svg className="pointer-events-none absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"></path>
+                            </svg>
+                        </div>
+                        <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Set as Recurring Expense</span>
+                    </label>
+
+                    {isRecurring && (
+                        <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <Select
+                                label="Frequency"
+                                {...register('recurringInterval')}
+                            >
+                                <option value="daily" className="bg-zinc-900">Daily</option>
+                                <option value="weekly" className="bg-zinc-900">Weekly</option>
+                                <option value="monthly" className="bg-zinc-900">Monthly</option>
+                                <option value="yearly" className="bg-zinc-900">Yearly</option>
+                            </Select>
+                            <p className="text-[10px] text-zinc-500 mt-2 ml-1 italic">
+                                * This expense will be automatically logged again based on the interval.
+                            </p>
+                        </div>
+                    )}
+                </div>
 
                 <div className="flex gap-3 pt-4">
                     <Button type="button" variant="secondary" onClick={onClose} className="flex-1">

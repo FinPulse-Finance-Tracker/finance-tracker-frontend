@@ -22,7 +22,7 @@ export default function Sidebar() {
     ];
 
     return (
-        <div className="w-64 h-screen bg-black border-r border-zinc-900 flex flex-col fixed left-0 top-0 z-40">
+        <div className="hidden md:flex w-64 h-screen bg-black border-r border-zinc-900 flex-col fixed left-0 top-0 z-40">
             <div className="p-6">
                 <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
                     FinPulse

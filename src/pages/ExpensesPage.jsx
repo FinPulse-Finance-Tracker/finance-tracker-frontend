@@ -1,35 +1,24 @@
 import React, { useState, useMemo } from 'react';
 import ExpenseList from '../components/Expenses/ExpenseList';
 import ExpenseModal from '../components/Expenses/ExpenseModal';
-import SpendingChart from '../components/Expenses/SpendingChart';
-import CategoryBreakdown from '../components/Expenses/CategoryBreakdown';
+import SmsImporter from '../components/Expenses/SmsImporter';
+import ReceiptScanner from '../components/Expenses/ReceiptScanner';
+import GmailConnect from '../components/Gmail/GmailConnect';
 import { Card, CardBody } from '../components/UI/Card';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { expenseService } from '../services/financeService';
-import { DollarSign, TrendingUp, TrendingDown, Download, CalendarDays } from 'lucide-react';
+import { DollarSign, Download, CalendarDays } from 'lucide-react';
 import { Button } from '../components/UI/Button';
 import { toast } from 'react-hot-toast';
-import { format } from 'date-fns';
+import { format, startOfMonth } from 'date-fns';
 
 export default function ExpensesPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedExpense, setSelectedExpense] = useState(null);
+    const queryClient = useQueryClient();
 
-    const today = useMemo(() => new Date().toISOString().split('T')[0], []);
-    const monthStart = useMemo(() => {
-        const now = new Date();
-        return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    }, []);
-    const lastMonthStart = useMemo(() => {
-        const now = new Date();
-        const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        return lm.toISOString().split('T')[0];
-    }, []);
-    const lastMonthEnd = useMemo(() => {
-        const now = new Date();
-        const lme = new Date(now.getFullYear(), now.getMonth(), 0); // last day of prev month
-        return lme.toISOString().split('T')[0];
-    }, []);
+    const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
+    const monthStart = useMemo(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'), []);
 
     // Current month stats
     const { data: monthlyStats } = useQuery({
@@ -43,11 +32,6 @@ export default function ExpensesPage() {
         queryFn: () => expenseService.getStats({ startDate: today, endDate: today }),
     });
 
-    // Last month stats (for comparison)
-    const { data: lastMonthStats } = useQuery({
-        queryKey: ['stats', 'lastMonth', lastMonthStart, lastMonthEnd],
-        queryFn: () => expenseService.getStats({ startDate: lastMonthStart, endDate: lastMonthEnd }),
-    });
 
     // Current month expenses (for charts)
     const { data: monthExpensesResponse } = useQuery({
@@ -57,16 +41,6 @@ export default function ExpensesPage() {
 
     const monthExpenses = monthExpensesResponse?.data || monthExpensesResponse || [];
 
-    // Monthly comparison
-    const comparison = useMemo(() => {
-        const thisMonth = monthlyStats?.total || 0;
-        const lastMonth = lastMonthStats?.total || 0;
-        if (lastMonth === 0) return { percent: 0, direction: 'same', text: 'No data from last month' };
-        const diff = ((thisMonth - lastMonth) / lastMonth) * 100;
-        if (diff > 0) return { percent: Math.abs(diff).toFixed(0), direction: 'up', text: `${Math.abs(diff).toFixed(0)}% more than last month` };
-        if (diff < 0) return { percent: Math.abs(diff).toFixed(0), direction: 'down', text: `${Math.abs(diff).toFixed(0)}% less than last month` };
-        return { percent: 0, direction: 'same', text: 'Same as last month' };
-    }, [monthlyStats, lastMonthStats]);
 
     const handleAddClick = () => {
         setSelectedExpense(null);
@@ -108,7 +82,7 @@ export default function ExpensesPage() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Total Spent This Month */}
                 <Card className="bg-purple-900/10 border-purple-500/20">
                     <CardBody className="flex items-center gap-4 p-5">
@@ -138,38 +112,20 @@ export default function ExpensesPage() {
                         </div>
                     </CardBody>
                 </Card>
-
-                {/* Monthly Comparison */}
-                <Card className={`${comparison.direction === 'down' ? 'bg-emerald-900/10 border-emerald-500/20' : comparison.direction === 'up' ? 'bg-red-900/10 border-red-500/20' : 'border-zinc-800'}`}>
-                    <CardBody className="flex items-center gap-4 p-5">
-                        <div className={`p-3 rounded-xl ${comparison.direction === 'down' ? 'bg-emerald-500/20 text-emerald-400' : comparison.direction === 'up' ? 'bg-red-500/20 text-red-400' : 'bg-zinc-800 text-zinc-400'}`}>
-                            {comparison.direction === 'up' ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
-                        </div>
-                        <div>
-                            <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium">vs Last Month</p>
-                            <h3 className={`text-sm font-bold mt-0.5 ${comparison.direction === 'down' ? 'text-emerald-400' : comparison.direction === 'up' ? 'text-red-400' : 'text-zinc-400'}`}>
-                                {comparison.text}
-                            </h3>
-                        </div>
-                    </CardBody>
-                </Card>
             </div>
 
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                <div className="lg:col-span-3">
-                    <SpendingChart expenses={monthExpenses} />
-                </div>
-                <div className="lg:col-span-2">
-                    <CategoryBreakdown expenses={monthExpenses} />
-                </div>
+            {/* Import Tools */}
+            <div className="grid grid-cols-1 gap-4">
+                <GmailConnect onImported={() => queryClient.invalidateQueries(['expenses', 'stats'])} />
+                <SmsImporter onImported={() => queryClient.invalidateQueries(['expenses', 'stats'])} />
+                <ReceiptScanner onImported={() => queryClient.invalidateQueries(['expenses', 'stats'])} />
             </div>
 
             {/* Export Button */}
             <div className="flex justify-end">
                 <Button variant="secondary" size="sm" onClick={handleExportCSV} className="gap-2">
                     <Download size={14} />
-                    Export CSV
+                    Monthly Export CSV
                 </Button>
             </div>
 

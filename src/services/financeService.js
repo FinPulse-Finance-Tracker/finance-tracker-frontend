@@ -20,3 +20,27 @@ export const categoryService = {
 export const budgetService = {
     setBudget: (data) => api.post('/budgets', data).then(res => res.data),
 };
+
+export const gmailService = {
+    getConnectUrl: () => api.get('/gmail/connect').then(res => res.data),
+    getStatus: () => api.get('/gmail/status').then(res => res.data),
+    sync: () => api.post('/gmail/sync').then(res => res.data),
+    importExpenses: (expenses) => api.post('/gmail/import', { expenses }).then(res => res.data),
+    disconnect: () => api.delete('/gmail/disconnect').then(res => res.data),
+};
+
+export const smsService = {
+    parse: (text) => api.post('/sms/parse', { text }).then(res => res.data),
+    importExpenses: (expenses) => api.post('/sms/import', { expenses }).then(res => res.data),
+};
+
+export const receiptService = {
+    scan: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post('/receipt/scan', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        }).then(res => res.data);
+    },
+    importExpense: (expense) => api.post('/receipt/import', { expense }).then(res => res.data),
+};
