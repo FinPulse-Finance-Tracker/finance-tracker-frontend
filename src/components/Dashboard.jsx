@@ -108,7 +108,7 @@ export default function Dashboard() {
                                             <p className="text-xs text-zinc-500">{expense.category?.name}</p>
                                         </div>
                                     </div>
-                                    <p className="text-sm font-bold text-white">-LKR {Number(expense.amount).toLocaleString()}</p>
+                                    <p className="text-sm font-bold text-white">LKR {Number(expense.amount).toLocaleString()}</p>
                                 </div>
                             ))
                         )}
