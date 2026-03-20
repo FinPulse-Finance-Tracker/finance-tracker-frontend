@@ -10,6 +10,7 @@ import SignUp from './components/auth/SignUp';
 import Dashboard from './components/Dashboard';
 import ExpensesPage from './pages/ExpensesPage';
 import CategoriesPage from './pages/CategoriesPage';
+import BudgetPage from './pages/BudgetPage';
 import AppLayout from './components/Layout/AppLayout';
 
 const queryClient = new QueryClient({
@@ -62,6 +63,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/expenses" element={<ExpensesPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/budgets" element={<BudgetPage />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </AppLayout>

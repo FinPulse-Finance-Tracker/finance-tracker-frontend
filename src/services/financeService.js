@@ -32,7 +32,10 @@ export const categoryService = {
 };
 
 export const budgetService = {
+    getBudgets: () => api.get('/budgets').then(res => res.data),
     setBudget: (data) => api.post('/budgets', data).then(res => res.data),
+    deleteBudget: (id) => api.delete(`/budgets/${id}`).then(res => res.data),
+    getSuggestions: (categoryId) => api.get(`/budgets/${categoryId}/suggestions`).then(res => res.data),
 };
 
 export const gmailService = {

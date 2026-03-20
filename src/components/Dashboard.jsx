@@ -1,10 +1,10 @@
 import { useUser } from '@clerk/clerk-react';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { expenseService } from '../services/financeService';
+import { expenseService, budgetService } from '../services/financeService';
 import { Card, CardBody } from './UI/Card';
 import { motion } from 'framer-motion';
-import { TrendingUp, Coins, Tags, ArrowRight } from 'lucide-react';
+import { TrendingUp, Coins, Tags, ArrowRight, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '../utils/cn';
 
@@ -17,6 +17,16 @@ export default function Dashboard() {
         queryKey: ['stats'],
         queryFn: () => expenseService.getStats(),
     });
+
+    const { data: budgetData } = useQuery({
+        queryKey: ['budgets'],
+        queryFn: budgetService.getBudgets,
+    });
+
+    // Get top 3 most critical budgets (sorted by percentUsed descending)
+    const criticalBudgets = (budgetData?.budgets || [])
+        .sort((a, b) => b.percentUsed - a.percentUsed)
+        .slice(0, 3);
 
     useEffect(() => {
         setIsVisible(true);
@@ -138,6 +148,51 @@ export default function Dashboard() {
                         ))}
                     </div>
                 </div>
+
+                {/* Budget Health */}
+                {criticalBudgets.length > 0 && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-xl font-bold text-white">Budget Health</h3>
+                            <Link to="/budgets" className="text-xs text-purple-400 hover:text-purple-300 inline-flex items-center gap-1">
+                                View All <ArrowRight size={10} />
+                            </Link>
+                        </div>
+                        <div className="grid gap-3">
+                            {criticalBudgets.map(budget => {
+                                const getColor = () => {
+                                    if (budget.percentUsed >= 90) return { bar: 'bg-red-500', bg: 'bg-red-500/10', text: 'text-red-400' };
+                                    if (budget.percentUsed >= 70) return { bar: 'bg-yellow-500', bg: 'bg-yellow-500/10', text: 'text-yellow-400' };
+                                    return { bar: 'bg-green-500', bg: 'bg-green-500/10', text: 'text-green-400' };
+                                };
+                                const colors = getColor();
+                                return (
+                                    <div key={budget.id} className="p-3 rounded-xl bg-zinc-900/30 border border-zinc-800 hover:border-purple-500/20 transition-all">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg">{budget.category?.icon || '💰'}</span>
+                                                <span className="text-sm font-medium text-white">{budget.category?.name}</span>
+                                            </div>
+                                            <span className={`text-xs font-semibold ${colors.text}`}>
+                                                {budget.percentUsed}%
+                                            </span>
+                                        </div>
+                                        <div className={`h-1.5 rounded-full overflow-hidden ${colors.bg}`}>
+                                            <div
+                                                className={`h-full rounded-full transition-all duration-700 ${colors.bar}`}
+                                                style={{ width: `${Math.min(budget.percentUsed, 100)}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex justify-between mt-1">
+                                            <span className="text-[10px] text-zinc-500">LKR {budget.spent.toLocaleString()} spent</span>
+                                            <span className="text-[10px] text-zinc-500">of LKR {budget.amount.toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

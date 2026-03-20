@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { gmailService } from '../../services/financeService';
 import { Button } from '../UI/Button';
 import { Card, CardBody } from '../UI/Card';
-import { Mail, CheckCircle, RefreshCw, Unlink, Loader2, AlertCircle } from 'lucide-react';
+import { Mail, CheckCircle, RefreshCw, Unlink, Loader2, AlertCircle, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import GmailImportModal from './GmailImportModal';
 
@@ -155,6 +155,30 @@ export default function GmailConnect({ onImported }) {
                         <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-2 text-xs text-zinc-400">
                             <Loader2 size={12} className="animate-spin text-blue-400" />
                             Scanning your Gmail for bill and receipt emails...
+                        </div>
+                    )}
+
+                    {/* Safe Mode Assurance UI for non-connected state */}
+                    {!isConnected && (
+                        <div className="mt-4 pt-4 border-t border-zinc-800">
+                            <div className="flex items-start gap-3 bg-zinc-800/40 p-3 rounded-xl border border-emerald-500/10 hover:border-emerald-500/30 transition-colors">
+                                <ShieldCheck size={18} className="text-emerald-400 shrink-0 mt-0.5" />
+                                <div className="text-xs text-zinc-400">
+                                    <p className="font-medium text-emerald-400/90 mb-1 flex items-center gap-1.5">
+                                        Safe Mode Enabled
+                                        <span className="bg-emerald-500/10 text-emerald-400 text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider font-bold">Privacy First</span>
+                                    </p>
+                                    <ul className="list-disc pl-3.5 space-y-1 mt-1.5">
+                                        <li>We only scan for receipts, bills, and order confirmations.</li>
+                                        <li>We <strong>cannot</strong> send emails or read your personal conversations.</li>
+                                        <li>You can disconnect and delete your synced data at any time.</li>
+                                        <li className="text-amber-400/80 mt-2.5 list-none text-[11px] flex gap-1.5 items-start -ml-3.5 bg-amber-500/5 p-2 rounded-lg border border-amber-500/10">
+                                            <AlertCircle size={14} className="shrink-0" />
+                                            <span><strong>Beta Notice:</strong> You may see a "Google hasn't verified this app" warning. This is perfectly normal during our testing phase.</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </CardBody>
