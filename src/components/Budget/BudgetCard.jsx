@@ -3,8 +3,14 @@ import { cn } from '../../utils/cn';
 import { Edit3, Trash2, Lightbulb } from 'lucide-react';
 import { Button } from '../UI/Button';
 
-export default function BudgetCard({ budget, onEdit, onDelete, onViewSuggestions }) {
-    const { category, amount, spent, remaining, percentUsed, isOverBudget, period } = budget;
+// Only these categories support AI suggestions
+const SUGGESTION_CATEGORIES = ['shopping', 'food', 'entertainment', 'dining', 'groceries'];
+
+export default function BudgetCard({ budget, onEdit, onDelete, onViewSuggestions, onStopRecurring }) {
+    const { category, amount, spent, remaining, percentUsed, isOverBudget, period, isRecurring } = budget;
+
+    // const showSuggestions = SUGGESTION_CATEGORIES.includes(category?.name?.toLowerCase());
+    const showSuggestions = false;
 
     // Color coding based on percentage used
     const getProgressColor = () => {
@@ -40,7 +46,14 @@ export default function BudgetCard({ budget, onEdit, onDelete, onViewSuggestions
                     <div className="flex items-center gap-3">
                         <div className="text-2xl">{category?.icon || '💰'}</div>
                         <div>
-                            <h3 className="font-bold text-white text-sm">{category?.name || 'Unknown'}</h3>
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-bold text-white text-sm">{category?.name || 'Unknown'}</h3>
+                                {isRecurring && (
+                                    <span className="flex items-center gap-1 text-[9px] font-bold text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20" title="Repeats every month">
+                                        🔁 Monthly
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <span className={cn(
@@ -86,15 +99,32 @@ export default function BudgetCard({ budget, onEdit, onDelete, onViewSuggestions
 
             {/* Actions */}
             <div className="px-5 pb-4 flex items-center gap-2">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onViewSuggestions(budget)}
-                    className="gap-1.5 text-purple-400 hover:text-purple-300 flex-1"
-                >
-                    <Lightbulb size={13} />
-                    Suggestions
-                </Button>
+                {isRecurring && onStopRecurring && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onStopRecurring(budget)}
+                        className="gap-1.5 text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 flex-[1.5]"
+                        title="Stop this from repeating next month"
+                    >
+                        <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-12.728 12.728M5.636 5.636l12.728 12.728" />
+                        </svg>
+                        <span className="hidden sm:inline">Stop Repeat</span>
+                        <span className="sm:hidden">Stop</span>
+                    </Button>
+                )}
+                {/* {showSuggestions && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onViewSuggestions(budget)}
+                        className="gap-1.5 text-purple-400 hover:text-purple-300 flex-1"
+                    >
+                        <Lightbulb size={13} />
+                        Suggestions
+                    </Button>
+                )} */}
                 <Button
                     variant="ghost"
                     size="sm"

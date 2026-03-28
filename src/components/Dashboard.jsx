@@ -7,20 +7,26 @@ import { motion } from 'framer-motion';
 import { TrendingUp, Coins, Tags, ArrowRight, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '../utils/cn';
+import { useDateContext } from '../context/DateContext';
+import MonthSelector from './UI/MonthSelector';
 
 export default function Dashboard() {
     const { user } = useUser();
     const firstName = user?.firstName || user?.emailAddresses[0]?.emailAddress?.split('@')[0];
     const [isVisible, setIsVisible] = useState(false);
+    const { getStartDate, getEndDate, selectedMonth, selectedYear } = useDateContext();
 
     const { data: stats, isLoading } = useQuery({
-        queryKey: ['stats'],
-        queryFn: () => expenseService.getStats(),
+        queryKey: ['stats', selectedMonth, selectedYear],
+        queryFn: () => expenseService.getStats({
+            startDate: getStartDate().toISOString(),
+            endDate: getEndDate().toISOString()
+        }),
     });
 
     const { data: budgetData } = useQuery({
-        queryKey: ['budgets'],
-        queryFn: budgetService.getBudgets,
+        queryKey: ['budgets', selectedMonth, selectedYear],
+        queryFn: () => budgetService.getBudgets({ month: selectedMonth, year: selectedYear }),
     });
 
     // Get top 3 most critical budgets (sorted by percentUsed descending)
@@ -38,18 +44,21 @@ export default function Dashboard() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-purple-900/20 border border-purple-500/30 rounded-2xl p-8 transition-all hover:bg-purple-900/30"
+                className="bg-purple-900/20 border border-purple-500/30 rounded-2xl p-5 sm:p-8 transition-all hover:bg-purple-900/30 relative"
             >
-                <h2 className="text-4xl font-bold text-white mb-2">
-                    Welcome back, {firstName}!
-                </h2>
-                <p className="text-purple-300 text-lg">
-                    Here's what's happening with your finances today.
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+                    <h2 className="text-2xl sm:text-4xl font-bold text-white">
+                        Welcome back, {firstName}!
+                    </h2>
+                    <MonthSelector />
+                </div>
+                <p className="text-purple-300 text-sm sm:text-lg">
+                    Here's what's happening with your finances this month.
                 </p>
             </motion.div>
 
             {/* Stats Grid */}
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <Card>
                     <CardBody className="space-y-4">
                         <div className="flex items-center justify-between">
@@ -99,7 +108,7 @@ export default function Dashboard() {
             </div>
 
             {/* Recent Activity & Quick Actions */}
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <Card className="h-full">
                     <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
                         <h3 className="font-bold text-white">Recent Transactions</h3>

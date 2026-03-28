@@ -23,6 +23,8 @@ const queryClient = new QueryClient({
   },
 });
 
+import { DateProvider } from './context/DateContext';
+
 function App() {
   const { getToken } = useAuth();
 
@@ -58,15 +60,17 @@ function App() {
       </SignedOut>
 
       <SignedIn>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/expenses" element={<ExpensesPage />} />
-            <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/budgets" element={<BudgetPage />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </AppLayout>
+        <DateProvider>
+          <AppLayout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/expenses" element={<ExpensesPage />} />
+              <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/budgets" element={<BudgetPage />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </AppLayout>
+        </DateProvider>
       </SignedIn>
     </QueryClientProvider>
   );

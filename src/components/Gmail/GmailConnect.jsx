@@ -5,10 +5,12 @@ import { Button } from '../UI/Button';
 import { Card, CardBody } from '../UI/Card';
 import { Mail, CheckCircle, RefreshCw, Unlink, Loader2, AlertCircle, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useDateContext } from '../../context/DateContext';
 import GmailImportModal from './GmailImportModal';
 
 export default function GmailConnect({ onImported }) {
     const queryClient = useQueryClient();
+    const { getStartDate, getEndDate } = useDateContext();
     const [showImportModal, setShowImportModal] = useState(false);
     const [extractedExpenses, setExtractedExpenses] = useState([]);
 
@@ -33,12 +35,11 @@ export default function GmailConnect({ onImported }) {
         refetchOnWindowFocus: true,
     });
 
-    // Sync emails mutation
     const syncMutation = useMutation({
-        mutationFn: gmailService.sync,
+        mutationFn: (dateRange) => gmailService.sync(dateRange),
         onSuccess: (data) => {
             if (data.count === 0) {
-                toast('No new bill emails found in the last 60 days.', { icon: '📭' });
+                toast('No new bill emails found for this month.', { icon: '📭' });
             } else {
                 setExtractedExpenses(data.expenses);
                 setShowImportModal(true);
@@ -120,7 +121,7 @@ export default function GmailConnect({ onImported }) {
                                     <Button
                                         variant="secondary"
                                         size="sm"
-                                        onClick={() => syncMutation.mutate()}
+                                        onClick={() => syncMutation.mutate({ startDate: getStartDate().toISOString(), endDate: getEndDate().toISOString() })}
                                         isLoading={syncMutation.isPending}
                                         className="gap-1.5 text-xs"
                                     >

@@ -16,8 +16,8 @@ export default function Sidebar() {
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
         { icon: Receipt, label: 'Expenses', path: '/expenses' },
-        { icon: Tags, label: 'Categories', path: '/categories' },
         { icon: Wallet, label: 'Budgets', path: '/budgets' },
+        { icon: Tags, label: 'Categories', path: '/categories' },
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 

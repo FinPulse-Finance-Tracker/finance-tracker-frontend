@@ -5,11 +5,13 @@ import { Card, CardBody } from '../components/UI/Card';
 import { Button } from '../components/UI/Button';
 import BudgetCard from '../components/Budget/BudgetCard';
 import BudgetFormModal from '../components/Budget/BudgetFormModal';
-import SuggestionsPanel from '../components/Budget/SuggestionsPanel';
+// import SuggestionsPanel from '../components/Budget/SuggestionsPanel';
 import UnbudgetedCard from '../components/Budget/UnbudgetedCard';
 import { motion } from 'framer-motion';
 import { Plus, Wallet, TrendingDown, PiggyBank, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useDateContext } from '../context/DateContext';
+import MonthSelector from '../components/UI/MonthSelector';
 
 export default function BudgetPage() {
     const queryClient = useQueryClient();
@@ -18,10 +20,12 @@ export default function BudgetPage() {
     const [suggestBudget, setSuggestBudget] = useState(null);
     const [defaultCategoryId, setDefaultCategoryId] = useState('');
 
+    const { selectedMonth, selectedYear } = useDateContext();
+
     // Fetch budgets
     const { data, isLoading: isBudgetsLoading, isFetching: isBudgetsFetching } = useQuery({
-        queryKey: ['budgets'],
-        queryFn: budgetService.getBudgets,
+        queryKey: ['budgets', selectedMonth, selectedYear],
+        queryFn: () => budgetService.getBudgets({ month: selectedMonth, year: selectedYear }),
     });
 
     const budgets = data?.budgets || [];
@@ -89,7 +93,24 @@ export default function BudgetPage() {
     };
 
     const handleSubmit = async (data) => {
-        await setBudgetMutation.mutateAsync(data);
+        await setBudgetMutation.mutateAsync({ 
+            data, 
+            params: { month: selectedMonth, year: selectedYear } 
+        });
+    };
+
+    const handleStopRecurring = async (budget) => {
+        if (window.confirm('Are you sure you want to stop this budget from repeating in future months?')) {
+            await setBudgetMutation.mutateAsync({
+                data: {
+                    categoryId: budget.categoryId,
+                    amount: budget.amount,
+                    period: budget.period,
+                    isRecurring: false
+                },
+                params: { month: selectedMonth, year: selectedYear }
+            });
+        }
     };
 
     const overBudgetCount = budgets.filter(b => b.isOverBudget).length;
@@ -110,13 +131,16 @@ export default function BudgetPage() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                className="flex flex-col md:flex-row md:items-center justify-between gap-4"
             >
-                <div>
-                    <h1 className="text-3xl font-bold text-white">Budgets</h1>
-                    <p className="text-sm text-zinc-500 mt-1">Track your spending limits and get smart suggestions</p>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full md:w-auto flex-1">
+                    <div>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-white">Budgets</h1>
+                        <p className="text-sm text-zinc-500 mt-1">Track your spending limits and save more</p>
+                    </div>
+                    <MonthSelector />
                 </div>
-                <Button variant="primary" size="md" onClick={handleAdd} className="gap-2 shrink-0">
+                <Button variant="primary" size="md" onClick={handleAdd} className="gap-2 shrink-0 md:ml-auto w-full md:w-auto">
                     <Plus size={16} />
                     Add Budget
                 </Button>
@@ -201,7 +225,7 @@ export default function BudgetPage() {
                                 </div>
                                 <h3 className="text-lg font-bold text-white mb-2">No budgets set yet</h3>
                                 <p className="text-sm text-zinc-500 mb-6 max-w-sm mx-auto">
-                                    Start by creating your first budget to track spending and get smart suggestions on where to save.
+                                    Start by creating your first budget to track spending and see where to save.
                                 </p>
                                 <Button variant="primary" size="md" onClick={handleAdd} className="gap-2">
                                     <Plus size={16} />
@@ -223,6 +247,7 @@ export default function BudgetPage() {
                                         onEdit={handleEdit}
                                         onDelete={handleDelete}
                                         onViewSuggestions={(b) => setSuggestBudget(b)}
+                                        onStopRecurring={handleStopRecurring}
                                     />
                                 </motion.div>
                             ))}
@@ -263,11 +288,11 @@ export default function BudgetPage() {
             />
 
             {/* Suggestions Panel */}
-            <SuggestionsPanel
+            {/* <SuggestionsPanel
                 isOpen={!!suggestBudget}
                 onClose={() => setSuggestBudget(null)}
                 budget={suggestBudget}
-            />
+            /> */}
         </div>
     );
 }

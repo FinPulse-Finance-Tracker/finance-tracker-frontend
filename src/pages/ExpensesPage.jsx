@@ -11,19 +11,23 @@ import { DollarSign, Download, CalendarDays } from 'lucide-react';
 import { Button } from '../components/UI/Button';
 import { toast } from 'react-hot-toast';
 import { format, startOfMonth } from 'date-fns';
+import { useDateContext } from '../context/DateContext';
+import MonthSelector from '../components/UI/MonthSelector';
 
 export default function ExpensesPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedExpense, setSelectedExpense] = useState(null);
-    const queryClient = useQueryClient();
+    const { getStartDate, getEndDate, selectedMonth, selectedYear } = useDateContext();
+
+    const monthStartIso = getStartDate().toISOString();
+    const monthEndIso = getEndDate().toISOString();
 
     const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
-    const monthStart = useMemo(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'), []);
 
-    // Current month stats
+    // Current selected month stats
     const { data: monthlyStats } = useQuery({
-        queryKey: ['stats', 'monthly', monthStart, today],
-        queryFn: () => expenseService.getStats({ startDate: monthStart, endDate: today }),
+        queryKey: ['stats', 'monthly', selectedMonth, selectedYear],
+        queryFn: () => expenseService.getStats({ startDate: monthStartIso, endDate: monthEndIso }),
     });
 
     // Today's stats
@@ -33,10 +37,10 @@ export default function ExpensesPage() {
     });
 
 
-    // Current month expenses (for charts)
+    // Current selected month expenses (for charts and list)
     const { data: monthExpensesResponse } = useQuery({
-        queryKey: ['expenses', 'monthly', monthStart, today],
-        queryFn: () => expenseService.getExpenses({ startDate: monthStart, endDate: today, limit: 500 }),
+        queryKey: ['expenses', 'monthly', selectedMonth, selectedYear],
+        queryFn: () => expenseService.getExpenses({ startDate: monthStartIso, endDate: monthEndIso, limit: 500 }),
     });
 
     const monthExpenses = monthExpensesResponse?.data || monthExpensesResponse || [];
@@ -81,6 +85,11 @@ export default function ExpensesPage() {
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h1 className="text-2xl font-bold text-white">Expenses</h1>
+                <MonthSelector />
+            </div>
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Total Spent This Month */}

@@ -13,8 +13,8 @@ export default function MobileNav() {
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
         { icon: Receipt, label: 'Expenses', path: '/expenses' },
-        { icon: Tags, label: 'Categories', path: '/categories' },
         { icon: Wallet, label: 'Budgets', path: '/budgets' },
+        { icon: Tags, label: 'Categories', path: '/categories' },
         // Settings might be less critical on mobile or can be top right in specific pages, 
         // but let's include it for completeness as 5 items fit well.
         { icon: Settings, label: 'Settings', path: '/settings' },
