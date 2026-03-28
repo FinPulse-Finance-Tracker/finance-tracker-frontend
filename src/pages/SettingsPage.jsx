@@ -32,10 +32,10 @@ export default function SettingsPage() {
             </motion.div>
 
             {/* Tabs */}
-            <div className="flex gap-4 border-b border-zinc-800 pb-px">
+            <div className="flex gap-2 sm:gap-4 border-b border-zinc-800 pb-px overflow-x-auto scrollbar-hide w-full">
                 <button
                     onClick={() => setActiveTab('account')}
-                    className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'account' ? 'text-purple-400' : 'text-zinc-500 hover:text-zinc-300'
+                    className={`pb-3 px-1 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'account' ? 'text-purple-400' : 'text-zinc-500 hover:text-zinc-300'
                         }`}
                 >
                     <div className="flex items-center gap-2">
@@ -48,7 +48,7 @@ export default function SettingsPage() {
                 </button>
                 <button
                     onClick={() => setActiveTab('integrations')}
-                    className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'integrations' ? 'text-purple-400' : 'text-zinc-500 hover:text-zinc-300'
+                    className={`pb-3 px-1 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'integrations' ? 'text-purple-400' : 'text-zinc-500 hover:text-zinc-300'
                         }`}
                 >
                     <div className="flex items-center gap-2">
@@ -61,7 +61,7 @@ export default function SettingsPage() {
                 </button>
                 <button
                     onClick={() => setActiveTab('support')}
-                    className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'support' ? 'text-purple-400' : 'text-zinc-500 hover:text-zinc-300'
+                    className={`pb-3 px-1 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'support' ? 'text-purple-400' : 'text-zinc-500 hover:text-zinc-300'
                         }`}
                 >
                     <div className="flex items-center gap-2">
@@ -74,7 +74,7 @@ export default function SettingsPage() {
                 </button>
                 <button
                     onClick={() => setActiveTab('data')}
-                    className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'data' ? 'text-purple-400' : 'text-zinc-500 hover:text-zinc-300'
+                    className={`pb-3 px-1 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'data' ? 'text-purple-400' : 'text-zinc-500 hover:text-zinc-300'
                         }`}
                 >
                     <div className="flex items-center gap-2">
