@@ -3,20 +3,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { expenseService, categoryService } from '../../services/financeService';
 import { Card, CardBody } from '../UI/Card';
 import { Button } from '../UI/Button';
-import { Plus, Search, Calendar, Pencil, Trash2, Tag, CalendarDays, Download, ChevronLeft, ChevronRight, Repeat, RefreshCw } from 'lucide-react';
+import { Plus, Search, Calendar, Pencil, Trash2, Tag, CalendarDays, Download, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../UI/ConfirmModal';
+import { useDateContext } from '../../context/DateContext';
 
 export default function ExpenseList({ onAddClick, onEditClick }) {
     const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
 
-    const currentDate = new Date();
-    const [selectedMonth, setSelectedMonth] = useState((currentDate.getMonth() + 1).toString().padStart(2, '0'));
-    const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
+    const { getStartDate, getEndDate } = useDateContext();
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -24,26 +23,13 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
 
     const [deleteId, setDeleteId] = useState(null);
 
-    // Compute start and end dates based on month/year selection
+    // Compute start and end dates based on global month/year selection
     const filterDates = useMemo(() => {
-        if (!selectedMonth && !selectedYear) return { start: undefined, end: undefined };
-
-        const year = selectedYear ? parseInt(selectedYear) : currentDate.getFullYear();
-        // If a month is selected, filter by that month. Else use the whole year.
-        if (selectedMonth) {
-            const dateStr = `${year}-${selectedMonth}-01`;
-            const date = parseISO(dateStr);
-            return {
-                start: format(startOfMonth(date), 'yyyy-MM-dd'),
-                end: format(endOfMonth(date), 'yyyy-MM-dd')
-            };
-        } else {
-            return {
-                start: `${year}-01-01`,
-                end: `${year}-12-31`
-            };
-        }
-    }, [selectedMonth, selectedYear]);
+        return {
+            start: getStartDate().toISOString(),
+            end: getEndDate().toISOString()
+        };
+    }, [getStartDate, getEndDate]);
 
     const { data: expensesResponse, isLoading, isFetching } = useQuery({
         queryKey: ['expenses', categoryFilter, filterDates.start, filterDates.end],
@@ -80,8 +66,6 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
     // Reset to page 1 when filters change
     const handleClearFilters = () => {
         setCategoryFilter('');
-        setSelectedMonth('');
-        setSelectedYear('');
         setSearchTerm('');
         setCurrentPage(1);
     };
@@ -152,21 +136,7 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
         }
     };
 
-    const hasActiveFilters = categoryFilter || selectedMonth || selectedYear || searchTerm;
-
-    // Helper arrays for dropdowns
-    const months = [
-        { value: '01', label: 'January' }, { value: '02', label: 'February' },
-        { value: '03', label: 'March' }, { value: '04', label: 'April' },
-        { value: '05', label: 'May' }, { value: '06', label: 'June' },
-        { value: '07', label: 'July' }, { value: '08', label: 'August' },
-        { value: '09', label: 'September' }, { value: '10', label: 'October' },
-        { value: '11', label: 'November' }, { value: '12', label: 'December' },
-    ];
-
-    // Generate recent years dynamically
-    const currentY = currentDate.getFullYear();
-    const years = [currentY, currentY - 1, currentY - 2, currentY - 3];
+    const hasActiveFilters = categoryFilter || searchTerm;
 
     if (isLoading) {
         return (
@@ -233,32 +203,28 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
                 )}
             </div>
 
-            {/* Expenses Table */}
-            <div className="w-full border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/30">
+            {/* Mobile Filters (visible on small screens) */}
+            <div className="md:hidden w-full mb-4">
+                <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="w-full h-10 rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 text-sm text-white focus:outline-none focus:border-purple-500 transition-all"
+                >
+                    <option value="">Category: All</option>
+                    {categories?.map((cat) => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                </select>
+            </div>
+
+            {/* Expenses Desktop Table */}
+            <div className="hidden md:block w-full border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/30">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead className="bg-zinc-800/80 text-zinc-400 text-xs uppercase tracking-wider">
                             <tr>
-                                <th className="px-5 py-3 font-semibold align-top w-56">
+                                <th className="px-5 py-3 font-semibold align-top w-32">
                                     <div className="mb-2.5 mt-0.5">Date</div>
-                                    <div className="flex gap-1.5">
-                                        <select
-                                            value={selectedMonth}
-                                            onChange={(e) => setSelectedMonth(e.target.value)}
-                                            className="w-full h-8 rounded-md border border-zinc-700 bg-zinc-900 px-1.5 text-xs text-zinc-300 focus:outline-none focus:border-purple-500 transition-all cursor-pointer"
-                                        >
-                                            <option value="">All</option>
-                                            {months.map(m => <option key={m.value} value={m.value}>{m.label.substring(0, 3)}</option>)}
-                                        </select>
-                                        <select
-                                            value={selectedYear}
-                                            onChange={(e) => setSelectedYear(e.target.value)}
-                                            className="w-full h-8 rounded-md border border-zinc-700 bg-zinc-900 px-1.5 text-xs text-zinc-300 focus:outline-none focus:border-purple-500 transition-all cursor-pointer"
-                                        >
-                                            <option value="">All</option>
-                                            {years.map(y => <option key={y} value={y.toString()}>{y}</option>)}
-                                        </select>
-                                    </div>
                                 </th>
                                 <th className="px-5 py-3 font-semibold align-top">
                                     <div className="mb-2 mt-0.5">Description</div>
@@ -313,9 +279,6 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
                                             <div className="flex flex-col">
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-sm font-medium text-white line-clamp-1">{expense.description}</span>
-                                                    {expense.isRecurring && (
-                                                        <Repeat size={14} className="text-purple-400 shrink-0" title={`Recurring: ${expense.recurringInterval}`} />
-                                                    )}
                                                 </div>
                                                 {expense.merchant && (
                                                     <span className="text-[11px] text-zinc-500 mt-0.5 line-clamp-1 flex items-center gap-1">
@@ -366,6 +329,80 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            {/* Expenses Mobile Card View */}
+            <div className="md:hidden space-y-3">
+                {paginatedExpenses.length === 0 ? (
+                    <div className="py-12 text-center border border-zinc-800 rounded-xl bg-zinc-900/30">
+                        <div className="flex flex-col items-center justify-center text-zinc-500">
+                            <CalendarDays size={32} className="mb-3 opacity-20" />
+                            <p className="text-sm font-medium text-zinc-400">No expenses found</p>
+                            <p className="text-xs mt-1">Try adjusting filters or add a new expense.</p>
+                        </div>
+                    </div>
+                ) : (
+                    paginatedExpenses.map((expense, index) => (
+                        <motion.div
+                            key={expense.id}
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2, delay: index * 0.02 }}
+                            className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 flex flex-col gap-3 relative hover:border-zinc-700 transition-colors"
+                        >
+                            <div className="flex justify-between items-start gap-4">
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h3 className="text-sm font-bold text-white truncate w-full">{expense.description}</h3>
+                                    </div>
+                                    <p className="text-xs text-zinc-400 font-medium">{format(parseISO(expense.date), 'MMM dd, yyyy')}</p>
+                                    {expense.merchant && (
+                                        <p className="text-[11px] text-zinc-500 mt-0.5 truncate flex items-center gap-1">
+                                            <Tag size={10} className="opacity-50" />
+                                            {expense.merchant}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="text-right shrink-0">
+                                    <p className="font-bold text-white text-base LKR">
+                                        LKR {Number(expense.amount).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                    </p>
+                                    <div className="mt-1 flex justify-end">
+                                        <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border"
+                                            style={{
+                                                backgroundColor: `${expense.category?.color || '#333'}15`,
+                                                color: expense.category?.color || '#888',
+                                                borderColor: `${expense.category?.color || '#333'}30`
+                                            }}
+                                        >
+                                            <span>{expense.category?.icon || '🏷️'}</span>
+                                            <span className="truncate max-w-[80px]">{expense.category?.name || 'Uncategorized'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2 pt-3 border-t border-zinc-800/50 mt-1">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => onEditClick(expense)}
+                                    className="h-8 text-zinc-400 hover:text-white hover:bg-zinc-800 flex-1 border border-zinc-800/50"
+                                >
+                                    <Pencil size={14} className="mr-1.5" /> Edit
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setDeleteId(expense.id)}
+                                    className="h-8 text-red-500/70 hover:text-red-400 hover:bg-zinc-800 flex-1 border border-zinc-800/50"
+                                >
+                                    <Trash2 size={14} className="mr-1.5" /> Delete
+                                </Button>
+                            </div>
+                        </motion.div>
+                    ))
+                )}
             </div>
 
             {/* Pagination Controls */}

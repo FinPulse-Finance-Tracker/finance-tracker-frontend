@@ -22,7 +22,7 @@ export const Modal = ({ isOpen, onClose, title, children, className }) => {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -31,16 +31,16 @@ export const Modal = ({ isOpen, onClose, title, children, className }) => {
                         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
                     />
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 40 }}
                         className={cn(
-                            'relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden',
+                            'relative w-full sm:max-w-lg bg-zinc-900 border border-zinc-800 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden',
                             className
                         )}
                     >
-                        <div className="flex items-center justify-between p-6 border-b border-zinc-800">
-                            <h3 className="text-xl font-bold text-white">{title}</h3>
+                        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-zinc-800">
+                            <h3 className="text-lg sm:text-xl font-bold text-white">{title}</h3>
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -50,7 +50,7 @@ export const Modal = ({ isOpen, onClose, title, children, className }) => {
                                 <X size={18} />
                             </Button>
                         </div>
-                        <div className="p-6 max-h-[80vh] overflow-y-auto">
+                        <div className="p-5 sm:p-6 max-h-[80vh] overflow-y-auto">
                             {children}
                         </div>
                     </motion.div>

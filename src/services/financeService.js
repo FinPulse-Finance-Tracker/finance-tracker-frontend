@@ -32,13 +32,21 @@ export const categoryService = {
 };
 
 export const budgetService = {
-    setBudget: (data) => api.post('/budgets', data).then(res => res.data),
+    getBudgets: (params) => api.get('/budgets', { params }).then(res => res.data),
+    setBudget: (payload) => {
+        if (payload.params) {
+            return api.post('/budgets', payload.data, { params: payload.params }).then(res => res.data);
+        }
+        return api.post('/budgets', payload).then(res => res.data);
+    },
+    deleteBudget: (id) => api.delete(`/budgets/${id}`).then(res => res.data),
+    getSuggestions: (categoryId, location, shoppingType) => api.get(`/budgets/${categoryId}/suggestions`, { params: { location, shoppingType } }).then(res => res.data),
 };
 
 export const gmailService = {
     getConnectUrl: () => api.get('/gmail/connect').then(res => res.data),
     getStatus: () => api.get('/gmail/status').then(res => res.data),
-    sync: () => api.post('/gmail/sync').then(res => res.data),
+    sync: (dateRange) => api.post('/gmail/sync', dateRange).then(res => res.data),
     importExpenses: (expenses) => api.post('/gmail/import', { expenses }).then(res => res.data),
     disconnect: () => api.delete('/gmail/disconnect').then(res => res.data),
 };
