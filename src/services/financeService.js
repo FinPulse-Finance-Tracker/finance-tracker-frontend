@@ -7,6 +7,8 @@ export const expenseService = {
     updateExpense: (id, data) => api.patch(`/expenses/${id}`, data).then(res => res.data),
     deleteExpense: (id) => api.delete(`/expenses/${id}`).then(res => res.data),
     getStats: (params) => api.get('/expenses/stats', { params }).then(res => res.data),
+    exportCsv: () => api.get('/expenses/export', { responseType: 'blob' }).then(res => res.data),
+    wipeData: () => api.delete('/expenses/wipe-all').then(res => res.data),
 };
 
 export const categoryService = {
@@ -66,3 +68,9 @@ export const receiptService = {
     },
     importExpense: (expense) => api.post('/receipt/import', { expense }).then(res => res.data),
 };
+
+export const systemService = {
+    submitFeedback: (data) => api.post('/feedback', data).then(res => res.data),
+};
+
+export default api;

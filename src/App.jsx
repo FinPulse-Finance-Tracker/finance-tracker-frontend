@@ -11,6 +11,7 @@ import Dashboard from './components/Dashboard';
 import ExpensesPage from './pages/ExpensesPage';
 import CategoriesPage from './pages/CategoriesPage';
 import BudgetPage from './pages/BudgetPage';
+import SettingsPage from './pages/SettingsPage';
 import AppLayout from './components/Layout/AppLayout';
 
 const queryClient = new QueryClient({
@@ -67,6 +68,7 @@ function App() {
               <Route path="/expenses" element={<ExpensesPage />} />
               <Route path="/categories" element={<CategoriesPage />} />
               <Route path="/budgets" element={<BudgetPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </AppLayout>

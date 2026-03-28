@@ -12,14 +12,16 @@ export default function Landing() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-black overflow-hidden px-4">
             <div className="text-center w-full max-w-xs">
-                {/* App Name with fade in animation */}
-                <h1
-                    className={`text-4xl sm:text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600 mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-                        }`}
+                {/* Logo and App Name with fade in animation */}
+                <div 
+                    className={`flex flex-col items-center justify-center gap-4 mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}
                     style={{ transitionDelay: '100ms' }}
                 >
-                    FinPulse
-                </h1>
+                    <img src="/logo.png" alt="FinPulse Logo" className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl shadow-xl shadow-purple-500/20 object-contain" />
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
+                        FinPulse
+                    </h1>
+                </div>
 
                 {/* Auth Buttons */}
                 <div className="flex flex-col gap-3 w-full mx-auto">

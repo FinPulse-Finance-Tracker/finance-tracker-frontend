@@ -23,7 +23,8 @@ export default function Sidebar() {
 
     return (
         <div className="hidden md:flex w-64 h-screen bg-black border-r border-zinc-900 flex-col fixed left-0 top-0 z-40">
-            <div className="p-6">
+            <div className="p-6 flex items-center gap-3">
+                <img src="/logo.png" alt="FinPulse Logo" className="w-8 h-8 rounded-md object-contain" />
                 <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
                     FinPulse
                 </h1>
