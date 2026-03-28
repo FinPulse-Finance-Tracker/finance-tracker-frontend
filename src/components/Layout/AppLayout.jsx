@@ -1,6 +1,7 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
+import FeedbackWidget from '../UI/FeedbackWidget';
 
 export default function AppLayout({ children }) {
     return (
@@ -11,6 +12,7 @@ export default function AppLayout({ children }) {
                 <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-8 min-w-0">
                     {children}
                 </div>
+                <FeedbackWidget />
             </main>
 
             {/* Animated background highlights */}
