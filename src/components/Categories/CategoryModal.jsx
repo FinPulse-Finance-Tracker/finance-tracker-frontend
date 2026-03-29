@@ -55,7 +55,7 @@ export default function CategoryModal({ isOpen, onClose, category = null }) {
             return categoryService.createCategory(data);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries(['categories']);
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
             toast.success(`Category ${isEditing ? 'updated' : 'created'} successfully`);
             onClose();
         },

@@ -50,7 +50,7 @@ export default function BudgetPage() {
     const setBudgetMutation = useMutation({
         mutationFn: budgetService.setBudget,
         onSuccess: () => {
-            queryClient.invalidateQueries(['budgets']);
+            queryClient.invalidateQueries({ queryKey: ['budgets'] });
             toast.success(editBudget ? 'Budget updated!' : 'Budget created!');
             setIsModalOpen(false);
             setEditBudget(null);
@@ -62,7 +62,7 @@ export default function BudgetPage() {
     const deleteBudgetMutation = useMutation({
         mutationFn: budgetService.deleteBudget,
         onSuccess: () => {
-            queryClient.invalidateQueries(['budgets']);
+            queryClient.invalidateQueries({ queryKey: ['budgets'] });
             toast.success('Budget deleted');
         },
         onError: () => toast.error('Failed to delete budget'),

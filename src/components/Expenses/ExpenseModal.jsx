@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { expenseService, categoryService } from '../../services/financeService';
+import CategoryModal from '../Categories/CategoryModal';
 import { Modal } from '../UI/Modal';
 import { Input, Select } from '../UI/Input';
 import { Button } from '../UI/Button';
@@ -83,6 +84,7 @@ export default function ExpenseModal({ isOpen, onClose, expense = null }) {
     const queryClient = useQueryClient();
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [showCalendar, setShowCalendar] = useState(false);
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
     const { register, handleSubmit, reset, watch, formState: { errors } } = useForm({
         defaultValues: {
@@ -131,9 +133,9 @@ export default function ExpenseModal({ isOpen, onClose, expense = null }) {
             return expenseService.createExpense(payload);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries(['expenses']);
-            queryClient.invalidateQueries(['stats']);
-            queryClient.invalidateQueries(['categories']);
+            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+            queryClient.invalidateQueries({ queryKey: ['stats'] });
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
             toast.success(`Expense ${isEditing ? 'updated' : 'added'} successfully`);
             reset();
             onClose();
@@ -188,25 +190,33 @@ export default function ExpenseModal({ isOpen, onClose, expense = null }) {
                     {...register('description', { required: 'Description is required' })}
                 />
 
-                <Select
-                    label="Category"
-                    error={errors.categoryId?.message}
-                    {...register('categoryId', { required: 'Please select a category' })}
-                >
-                    <option value="" disabled className="bg-zinc-900">Select a category</option>
-                    {categories?.map((cat) => (
-                        <option key={cat.id} value={cat.id} className="bg-zinc-900">
-                            {cat.icon} {cat.name}
-                        </option>
-                    ))}
-                </Select>
+                <div className="flex flex-col gap-1">
+                    <Select
+                        label="Category"
+                        error={errors.categoryId?.message}
+                        {...register('categoryId', { required: 'Please select a category' })}
+                    >
+                        <option value="" disabled className="bg-zinc-900">Select a category</option>
+                        {categories?.map((cat) => (
+                            <option key={cat.id} value={cat.id} className="bg-zinc-900">
+                                {cat.icon} {cat.name}
+                            </option>
+                        ))}
+                    </Select>
+                    <button 
+                        type="button" 
+                        onClick={() => setIsCategoryModalOpen(true)}
+                        className="text-xs text-purple-400 hover:text-purple-300 text-left w-max transition-colors font-medium mt-1 inline-flex items-center gap-1"
+                    >
+                        <span className="text-lg leading-none">+</span> Create New Category
+                    </button>
+                </div>
 
                 <Input
                     label="Notes (Optional)"
                     placeholder="Add more details..."
                     {...register('notes')}
                 />
-
 
                 <div className="flex gap-3 pt-4">
                     <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
@@ -217,6 +227,14 @@ export default function ExpenseModal({ isOpen, onClose, expense = null }) {
                     </Button>
                 </div>
             </form>
+
+            {/* Nested Category Modal */}
+            {isCategoryModalOpen && (
+                <CategoryModal
+                    isOpen={isCategoryModalOpen}
+                    onClose={() => setIsCategoryModalOpen(false)}
+                />
+            )}
         </Modal>
     );
 }

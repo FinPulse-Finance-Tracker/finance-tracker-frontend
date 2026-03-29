@@ -125,7 +125,7 @@ export default function SettingsPage() {
                             <p className="text-sm text-zinc-400 mb-4">
                                 Automate your tracking by syncing your inbox for digital receipts.
                             </p>
-                            <GmailConnect onImported={() => queryClient.invalidateQueries(['expenses', 'stats'])} />
+                            <GmailConnect onImported={() => { queryClient.invalidateQueries({ queryKey: ['expenses'] }); queryClient.invalidateQueries({ queryKey: ['stats'] }); }} />
                         </div>
                     </div>
                 )}

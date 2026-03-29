@@ -23,7 +23,7 @@ export default function CategoryList() {
     const deleteMutation = useMutation({
         mutationFn: (id) => categoryService.deleteCategory(id),
         onSuccess: () => {
-            queryClient.invalidateQueries(['categories']);
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
             toast.success('Category deleted successfully');
             setDeleteId(null);
         },

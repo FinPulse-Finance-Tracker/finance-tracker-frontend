@@ -40,8 +40,8 @@ export default function SmsImporter({ onImported }) {
     const handleImportDone = () => {
         setShowModal(false);
         setExtractedExpenses([]);
-        queryClient.invalidateQueries(['expenses']);
-        queryClient.invalidateQueries(['stats']);
+        queryClient.invalidateQueries({ queryKey: ['expenses'] });
+        queryClient.invalidateQueries({ queryKey: ['stats'] });
         if (onImported) onImported();
     };
 
