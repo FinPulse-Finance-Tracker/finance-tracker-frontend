@@ -39,7 +39,7 @@ export default function GmailConnect({ onImported }) {
         mutationFn: (dateRange) => gmailService.sync(dateRange),
         onSuccess: (data) => {
             if (data.count === 0) {
-                toast('No new bill emails found for this month.', { icon: '📭' });
+                toast('No new bill emails found for this month.', { icon: '' });
             } else {
                 setExtractedExpenses(data.expenses);
                 setShowImportModal(true);

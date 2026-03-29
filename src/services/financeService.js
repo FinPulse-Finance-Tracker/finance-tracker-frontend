@@ -53,11 +53,6 @@ export const gmailService = {
     disconnect: () => api.delete('/gmail/disconnect').then(res => res.data),
 };
 
-export const smsService = {
-    parse: (text) => api.post('/sms/parse', { text }).then(res => res.data),
-    importExpenses: (expenses) => api.post('/sms/import', { expenses }).then(res => res.data),
-};
-
 export const receiptService = {
     scan: (file) => {
         const formData = new FormData();

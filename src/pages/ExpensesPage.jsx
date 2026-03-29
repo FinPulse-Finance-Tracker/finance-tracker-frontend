@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import ExpenseList from '../components/Expenses/ExpenseList';
 import ExpenseModal from '../components/Expenses/ExpenseModal';
-import SmsImporter from '../components/Expenses/SmsImporter';
 import ReceiptScanner from '../components/Expenses/ReceiptScanner';
 import GmailConnect from '../components/Gmail/GmailConnect';
 import { Card, CardBody } from '../components/UI/Card';
@@ -127,7 +126,6 @@ export default function ExpensesPage() {
             {/* Import Tools */}
             <div className="grid grid-cols-1 gap-4">
                 <GmailConnect onImported={() => { queryClient.invalidateQueries({ queryKey: ['expenses'] }); queryClient.invalidateQueries({ queryKey: ['stats'] }); }} />
-                <SmsImporter onImported={() => { queryClient.invalidateQueries({ queryKey: ['expenses'] }); queryClient.invalidateQueries({ queryKey: ['stats'] }); }} />
                 <ReceiptScanner onImported={() => { queryClient.invalidateQueries({ queryKey: ['expenses'] }); queryClient.invalidateQueries({ queryKey: ['stats'] }); }} />
             </div>
 

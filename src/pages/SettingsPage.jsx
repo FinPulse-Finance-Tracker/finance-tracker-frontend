@@ -127,6 +127,25 @@ export default function SettingsPage() {
                             </p>
                             <GmailConnect onImported={() => { queryClient.invalidateQueries({ queryKey: ['expenses'] }); queryClient.invalidateQueries({ queryKey: ['stats'] }); }} />
                         </div>
+
+                        <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 shadow-sm mt-2">
+                            <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                                <Plug size={20} className="text-purple-400" />
+                                Google Calendar Reminders
+                            </h2>
+                            <p className="text-sm text-zinc-400 mb-6">
+                                Want a daily push notification to log your expenses? Add a recurring 9 PM reminder directly to your personal Google Calendar.
+                            </p>
+                            <a
+                                href="https://calendar.google.com/calendar/r/eventedit?text=Log+Daily+Expenses+-+Finance+Tracker&details=Friendly+reminder+to+add+your+daily+expenses+in+the+Finance+Tracker.+Log+them+here:+https://finpulse.nethmihapuarachchi.com/&recur=RRULE:FREQ=DAILY"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-xl font-medium transition-colors"
+                            >
+                                <ExternalLink size={16} />
+                                Add to Google Calendar
+                            </a>
+                        </div>
                     </div>
                 )}
 
