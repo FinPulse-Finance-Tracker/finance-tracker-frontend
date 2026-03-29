@@ -68,12 +68,20 @@ export default function Dashboard() {
     };
 
     return (
-        <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="space-y-8"
-        >
+        <div className="relative w-full h-full">
+            {isLoading && (
+                <div className="absolute inset-0 z-50 bg-black/5 backdrop-blur-[3px] rounded-3xl flex items-start justify-center pt-32 transition-all duration-300 animate-in fade-in">
+                    <div className="bg-zinc-900/80 p-4 rounded-full shadow-2xl border border-zinc-800/80">
+                        <div className="animate-spin rounded-full h-6 w-6 border-[2.5px] border-purple-500 border-t-transparent"></div>
+                    </div>
+                </div>
+            )}
+            <motion.div 
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                className={`space-y-8 transition-all duration-500 ${isLoading ? 'opacity-50 scale-[0.98] blur-[2px] pointer-events-none' : 'opacity-100 scale-100'}`}
+            >
             {/* Welcome Hero */}
             <motion.div
                 variants={itemVariants}
@@ -280,5 +288,6 @@ export default function Dashboard() {
                 </div>
             </motion.div>
         </motion.div>
+        </div>
     );
 }

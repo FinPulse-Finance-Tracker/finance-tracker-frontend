@@ -13,12 +13,12 @@ export default function Landing() {
         <div className="min-h-screen flex items-center justify-center bg-black overflow-hidden px-4">
             <div className="text-center w-full max-w-xs">
                 {/* Logo and App Name with fade in animation */}
-                <div 
-                    className={`flex flex-col items-center justify-center gap-4 mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}
+                <div
+                    className={`flex flex-col items-center justify-center gap-6 mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}
                     style={{ transitionDelay: '100ms' }}
                 >
-                    <img src="/logo.png" alt="FinPulse Logo" className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl shadow-xl shadow-purple-500/20 object-contain" />
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
+                    <img src="/logo.jpg" alt="FinPulse Logo" className="w-32 h-32 sm:w-40 sm:h-40 rounded-[2rem] shadow-2xl shadow-purple-500/30 object-contain" />
+                    <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
                         FinPulse
                     </h1>
                 </div>

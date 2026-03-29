@@ -33,8 +33,8 @@ export default function AddExpenseModal({ isOpen, onClose }) {
             amount: parseFloat(data.amount),
         }),
         onSuccess: () => {
-            queryClient.invalidateQueries(['expenses']);
-            queryClient.invalidateQueries(['stats']);
+            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+            queryClient.invalidateQueries({ queryKey: ['stats'] });
             toast.success('Expense added successfully');
             reset();
             onClose();

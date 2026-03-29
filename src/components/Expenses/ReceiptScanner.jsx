@@ -89,8 +89,8 @@ export default function ReceiptScanner({ onImported }) {
         setShowModal(false);
         setExtractedExpense(null);
         handleClear();
-        queryClient.invalidateQueries(['expenses']);
-        queryClient.invalidateQueries(['stats']);
+        queryClient.invalidateQueries({ queryKey: ['expenses'] });
+        queryClient.invalidateQueries({ queryKey: ['stats'] });
         if (onImported) onImported();
     };
 

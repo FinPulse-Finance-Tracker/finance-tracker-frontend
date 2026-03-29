@@ -19,7 +19,7 @@ export default function GmailConnect({ onImported }) {
         const params = new URLSearchParams(window.location.search);
         if (params.get('gmail') === 'connected') {
             toast.success('Gmail connected successfully!');
-            queryClient.invalidateQueries(['gmail-status']);
+            queryClient.invalidateQueries({ queryKey: ['gmail-status'] });
             // Clean URL
             window.history.replaceState({}, '', window.location.pathname);
         } else if (params.get('gmail') === 'error') {
@@ -39,7 +39,7 @@ export default function GmailConnect({ onImported }) {
         mutationFn: (dateRange) => gmailService.sync(dateRange),
         onSuccess: (data) => {
             if (data.count === 0) {
-                toast('No new bill emails found for this month.', { icon: '📭' });
+                toast('No new bill emails found for this month.', { icon: '' });
             } else {
                 setExtractedExpenses(data.expenses);
                 setShowImportModal(true);
@@ -56,7 +56,7 @@ export default function GmailConnect({ onImported }) {
         mutationFn: gmailService.disconnect,
         onSuccess: () => {
             toast.success('Gmail disconnected.');
-            queryClient.invalidateQueries(['gmail-status']);
+            queryClient.invalidateQueries({ queryKey: ['gmail-status'] });
         },
     });
 
@@ -77,8 +77,8 @@ export default function GmailConnect({ onImported }) {
     const handleImportDone = () => {
         setShowImportModal(false);
         setExtractedExpenses([]);
-        queryClient.invalidateQueries(['expenses']);
-        queryClient.invalidateQueries(['stats']);
+        queryClient.invalidateQueries({ queryKey: ['expenses'] });
+        queryClient.invalidateQueries({ queryKey: ['stats'] });
         if (onImported) onImported();
     };
 

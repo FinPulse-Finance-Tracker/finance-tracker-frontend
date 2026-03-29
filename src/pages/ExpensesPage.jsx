@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import ExpenseList from '../components/Expenses/ExpenseList';
 import ExpenseModal from '../components/Expenses/ExpenseModal';
-import SmsImporter from '../components/Expenses/SmsImporter';
 import ReceiptScanner from '../components/Expenses/ReceiptScanner';
 import GmailConnect from '../components/Gmail/GmailConnect';
 import { Card, CardBody } from '../components/UI/Card';
@@ -17,6 +16,7 @@ import MonthSelector from '../components/UI/MonthSelector';
 export default function ExpensesPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedExpense, setSelectedExpense] = useState(null);
+    const queryClient = useQueryClient();
     const { getStartDate, getEndDate, selectedMonth, selectedYear } = useDateContext();
 
     const monthStartIso = getStartDate().toISOString();
@@ -125,9 +125,8 @@ export default function ExpensesPage() {
 
             {/* Import Tools */}
             <div className="grid grid-cols-1 gap-4">
-                <GmailConnect onImported={() => queryClient.invalidateQueries(['expenses', 'stats'])} />
-                <SmsImporter onImported={() => queryClient.invalidateQueries(['expenses', 'stats'])} />
-                <ReceiptScanner onImported={() => queryClient.invalidateQueries(['expenses', 'stats'])} />
+                <GmailConnect onImported={() => { queryClient.invalidateQueries({ queryKey: ['expenses'] }); queryClient.invalidateQueries({ queryKey: ['stats'] }); }} />
+                <ReceiptScanner onImported={() => { queryClient.invalidateQueries({ queryKey: ['expenses'] }); queryClient.invalidateQueries({ queryKey: ['stats'] }); }} />
             </div>
 
             {/* Export Button */}

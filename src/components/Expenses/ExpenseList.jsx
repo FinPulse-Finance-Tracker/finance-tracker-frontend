@@ -19,7 +19,7 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 20;
+    const itemsPerPage = 10;
 
     const [deleteId, setDeleteId] = useState(null);
 
@@ -51,9 +51,9 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
     const deleteMutation = useMutation({
         mutationFn: (id) => expenseService.deleteExpense(id),
         onSuccess: () => {
-            queryClient.invalidateQueries(['expenses']);
-            queryClient.invalidateQueries(['stats']);
-            queryClient.invalidateQueries(['categories']);
+            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+            queryClient.invalidateQueries({ queryKey: ['stats'] });
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
             toast.success('Expense deleted');
             setDeleteId(null);
         },
@@ -159,15 +159,11 @@ export default function ExpenseList({ onAddClick, onEditClick }) {
                 <div className="flex gap-2">
                     <Button
                         variant="secondary"
-                        onClick={() => queryClient.invalidateQueries(['expenses'])}
+                        onClick={() => queryClient.invalidateQueries({ queryKey: ['expenses'] })}
                         className="p-2 shrink-0"
                         title="Refresh Data"
                     >
                         <RefreshCw size={18} className={isFetching ? 'animate-spin' : ''} />
-                    </Button>
-                    <Button variant="secondary" onClick={handleExportCSV} className="gap-2 shrink-0">
-                        <Download size={18} />
-                        Export CSV
                     </Button>
                     <Button onClick={onAddClick} className="gap-2 shrink-0">
                         <Plus size={18} />
