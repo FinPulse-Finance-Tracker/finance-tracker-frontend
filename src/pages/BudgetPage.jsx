@@ -8,7 +8,7 @@ import BudgetFormModal from '../components/Budget/BudgetFormModal';
 // import SuggestionsPanel from '../components/Budget/SuggestionsPanel';
 import UnbudgetedCard from '../components/Budget/UnbudgetedCard';
 import { motion } from 'framer-motion';
-import { Plus, Wallet, TrendingDown, PiggyBank, AlertTriangle } from 'lucide-react';
+import { Plus, Wallet, TrendingDown, PiggyBank, AlertTriangle, Info } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useDateContext } from '../context/DateContext';
 import MonthSelector from '../components/UI/MonthSelector';
@@ -93,9 +93,9 @@ export default function BudgetPage() {
     };
 
     const handleSubmit = async (data) => {
-        await setBudgetMutation.mutateAsync({ 
-            data, 
-            params: { month: selectedMonth, year: selectedYear } 
+        await setBudgetMutation.mutateAsync({
+            data,
+            params: { month: selectedMonth, year: selectedYear }
         });
     };
 
@@ -140,10 +140,22 @@ export default function BudgetPage() {
                     </div>
                     <MonthSelector />
                 </div>
-                <Button variant="primary" size="md" onClick={handleAdd} className="gap-2 shrink-0 md:ml-auto w-full md:w-auto">
-                    <Plus size={16} />
-                    Add Budget
-                </Button>
+                <div className="flex items-center gap-2 w-full md:w-auto shrink-0 md:ml-auto justify-end">
+                    <div className="relative group flex items-center justify-center p-2 rounded-xl border border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:text-blue-400 hover:border-blue-500/30 hover:bg-blue-500/10 transition-colors cursor-help">
+                        <Info size={20} />
+                        {/* Tooltip */}
+                        <div className="absolute top-full mb-2 right-0 md:mt-3 hidden group-hover:block w-72 p-3.5 bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <h4 className="font-bold text-white text-sm mb-1.5 flex items-center gap-1.5"><Info size={14} className="text-blue-400" /> What is a Budget?</h4>
+                            <p className="text-xs text-zinc-400 leading-relaxed">
+                                A working budget is a pre-planned spending limit for a specific category (like <i>Food</i> or <i>Transport</i>). Setting a budget prevents overspending.
+                            </p>
+                        </div>
+                    </div>
+                    <Button variant="primary" size="md" onClick={handleAdd} className="gap-2 w-full sm:w-auto">
+                        <Plus size={16} />
+                        Add Budget
+                    </Button>
+                </div>
             </motion.div>
 
             {/* Summary Cards */}
