@@ -18,7 +18,7 @@ export default function GmailConnect({ onImported }) {
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         if (params.get('gmail') === 'connected') {
-            toast.success('✅ Gmail connected! Auto-forwarding filter is being set up...');
+            toast.success('Gmail connected! Auto-forwarding filter is being set up...');
             queryClient.invalidateQueries({ queryKey: ['gmail-forwarding-status'] });
             queryClient.invalidateQueries({ queryKey: ['forwarding-address'] });
             window.history.replaceState({}, '', window.location.pathname);
@@ -72,7 +72,7 @@ export default function GmailConnect({ onImported }) {
         }
     };
 
-    const isConnected = status?.connected && status?.forwardingActive;
+    const isConnected = status?.connected;
     const isLoading = addressLoading || statusLoading;
 
     return (
@@ -159,6 +159,8 @@ export default function GmailConnect({ onImported }) {
                             <div>
                                 <p className="font-medium text-blue-400 mb-0.5">Auto-forwarding is active</p>
                                 <p>New purchase emails are automatically forwarded and saved as expenses. No manual steps needed.</p>
+                                <p className="mt-2 text-zinc-500 font-medium pb-0.5">Note on past expenses:</p>
+                                <p className="text-zinc-500">Because we enforce <strong>Zero Inbox Access</strong> to protect your privacy, we cannot scan your past inbox history. To add past email receipts, please use the <strong>Scan Receipt</strong> tool below.</p>
                             </div>
                         </div>
                     ) : (
