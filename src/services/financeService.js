@@ -9,6 +9,7 @@ export const expenseService = {
     getStats: (params) => api.get('/expenses/stats', { params }).then(res => res.data),
     exportCsv: () => api.get('/expenses/export', { responseType: 'blob' }).then(res => res.data),
     wipeData: () => api.delete('/expenses/wipe-all').then(res => res.data),
+    getNewSinceLogin: () => api.get('/expenses/new-since-login').then(res => res.data),
 };
 
 export const categoryService = {
