@@ -53,6 +53,11 @@ export const gmailService = {
     disconnect: () => api.delete('/gmail/disconnect').then(res => res.data),
 };
 
+export const forwardingService = {
+    getAddress: () => api.get('/user/forwarding-address').then(res => res.data),
+    setupAutoForward: () => api.get('/gmail/connect').then(res => res.data), // triggers OAuth for filter setup
+};
+
 export const receiptService = {
     scan: (file) => {
         const formData = new FormData();
