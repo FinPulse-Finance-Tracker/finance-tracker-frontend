@@ -12,7 +12,9 @@ import ExpensesPage from './pages/ExpensesPage';
 import CategoriesPage from './pages/CategoriesPage';
 import BudgetPage from './pages/BudgetPage';
 import SettingsPage from './pages/SettingsPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import AppLayout from './components/Layout/AppLayout';
+import { useEmailImportNotification } from './hooks/useEmailImportNotification';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,6 +27,13 @@ const queryClient = new QueryClient({
 });
 
 import { DateProvider } from './context/DateContext';
+
+// Inner component to encapsulate authenticated-only hooks
+function AuthenticatedSession({ children }) {
+  // Fire logic that should only run when signed in (like global login toast)
+  useEmailImportNotification();
+  return <>{children}</>;
+}
 
 function App() {
   const { getToken } = useAuth();
@@ -56,23 +65,26 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/sign-in/*" element={<SignIn />} />
           <Route path="/sign-up/*" element={<SignUp />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </SignedOut>
 
       <SignedIn>
-        <DateProvider>
-          <AppLayout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/expenses" element={<ExpensesPage />} />
-              <Route path="/categories" element={<CategoriesPage />} />
-              <Route path="/budgets" element={<BudgetPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </AppLayout>
-        </DateProvider>
+        <AuthenticatedSession>
+          <DateProvider>
+            <AppLayout>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/expenses" element={<ExpensesPage />} />
+                <Route path="/categories" element={<CategoriesPage />} />
+                <Route path="/budgets" element={<BudgetPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </AppLayout>
+          </DateProvider>
+        </AuthenticatedSession>
       </SignedIn>
     </QueryClientProvider>
   );
