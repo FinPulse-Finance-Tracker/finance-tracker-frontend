@@ -8,12 +8,12 @@ export default function PrivacyPolicyPage() {
                 {/* Header */}
                 <div className="mb-10">
                     <Link to="/" className="text-sm text-purple-400 hover:text-purple-300 underline underline-offset-4 transition-colors">
-                        ← Back to Home (finpulse.nethmihapauarachchi.com)
+                        ← Back to Home (finpulse.nethmihapuarachchi.com)
                     </Link>
                     <h1 className="text-3xl font-bold text-white mt-6 mb-1">Privacy Policy &amp; Terms of Service</h1>
                     <p className="text-purple-400 font-medium text-lg mb-1">FinPulse — Finance Tracker</p>
                     <p className="text-sm text-zinc-500">Application: Finance Tracker (also known as FinPulse) | Last updated: April 2026</p>
-                    <p className="text-sm text-zinc-500 mt-1">URL: https://finpulse.nethmihapauarachchi.com/privacy</p>
+                    <p className="text-sm text-zinc-500 mt-1">URL: https://finpulse.nethmihapuarachchi.com/privacy</p>
                 </div>
 
                 <div className="space-y-8 bg-zinc-900/50 border border-zinc-800/80 p-8 rounded-[2rem] text-sm leading-relaxed">
@@ -23,7 +23,7 @@ export default function PrivacyPolicyPage() {
                         <h2 className="text-lg font-bold text-white mb-3">1. About This Application</h2>
                         <p className="mb-2">
                             <strong className="text-white">FinPulse</strong> (registered with Google as <strong className="text-white">Finance Tracker</strong>) is a personal financial management web application available at{' '}
-                            <a href="https://finpulse.nethmihapauarachchi.com" className="text-purple-400 underline">finpulse.nethmihapauarachchi.com</a>.
+                            <a href="https://finpulse.nethmihapuarachchi.com" className="text-purple-400 underline">finpulse.nethmihapuarachchi.com</a>.
                         </p>
                         <p className="mb-2">
                             The application helps users track their personal expenditures and manage budgets. Its primary feature is automated expense detection: with the user's explicit permission, FinPulse sets up a Gmail forwarding filter to route purchase-related emails to the FinPulse system, where they are parsed and recorded as expense entries in the user's account.

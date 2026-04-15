@@ -49,7 +49,7 @@ export default function Landing() {
 
                 {/* Privacy Policy Link — prominent & discoverable */}
                 <div className="border-t border-zinc-800 pt-6">
-                    <p className="text-xs text-zinc-500 mb-2">FinPulse — Finance Tracker · finpulse.nethmihapauarachchi.com</p>
+                    <p className="text-xs text-zinc-500 mb-2">FinPulse — Finance Tracker · finpulse.nethmihapuarachchi.com</p>
                     <a
                         href="/privacy"
                         className="inline-block text-sm text-purple-400 hover:text-purple-300 underline underline-offset-4 font-medium transition-colors"
